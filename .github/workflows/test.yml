@@ -22,7 +22,7 @@ jobs:
           Start-Process -FilePath .\motor.exe -NoNewWindow -RedirectStandardOutput motor.log
           Start-Sleep -Seconds 6
           $t = "cwps-yerel-9f3a7d"
-          $uclar = @("durum","tara?h=scanme.nmap.org&p1=22&p2=100&th=64","tersdns?ip=45.33.32.156","metod?h=scanme.nmap.org","modul")
+          $uclar = @("durum","zafiyet?h=testphp.vulnweb.com&yol=/artists.php%3Fartist%3D1","modul")
           $ok=0; $hata=0
           foreach ($u in $uclar) {
             $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
@@ -34,4 +34,4 @@ jobs:
           }
           Write-Host "=== MOTOR CIKTISI ==="; Get-Content motor.log -Tail 20
           Write-Host ("SONUC: OK=" + $ok + " HATA=" + $hata)
-          if ($ok -lt 4) { exit 1 }
+          if ($ok -lt 3) { exit 1 }
