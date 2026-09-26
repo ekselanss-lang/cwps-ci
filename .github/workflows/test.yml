@@ -8,7 +8,7 @@ jobs:
       - name: Kaynagi coz (sifreli)
         shell: bash
         run: |
-          echo "${{ secrets.PAKET_SIFRE }}" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out kaynak.tar.gz -pass stdin
+          printf %s "${{ secrets.PAKET_SIFRE }}" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out kaynak.tar.gz -pass stdin
           tar xzf kaynak.tar.gz && ls -la motor.cpp dis.cpp
       - name: MinGW kur
         run: choco install mingw -y --no-progress
