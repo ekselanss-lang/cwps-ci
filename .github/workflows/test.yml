@@ -22,7 +22,7 @@ jobs:
           Start-Process -FilePath .\motor.exe -NoNewWindow -RedirectStandardOutput motor.log
           Start-Sleep -Seconds 6
           $t = "cwps-yerel-9f3a7d"
-          $uclar = @("durum","webguv?h=cyberwolfsec.com&kendi=1","zafiyet?h=cyberwolfsec.com&yol=/&kendi=1","cms?h=cyberwolfsec.com&kendi=1")
+          $uclar = @("durum","yuk?lhost=1.2.3.4&lport=4444","yuk?tur=ps1&lhost=1.2.3.4&lport=5555")
           $ok=0; $hata=0
           foreach ($u in $uclar) {
             $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
@@ -32,6 +32,7 @@ jobs:
               Write-Host ("OK  " + $u + " -> " + $r.Content.Substring(0,[Math]::Min(150,$r.Content.Length))); $ok++
             } catch { Write-Host ("HATA " + $u + " -> " + $_); $hata++ }
           }
+          Write-Host "=== PAYLOAD DOSYALARI ==="; Get-ChildItem payloadlar -ErrorAction SilentlyContinue | Select-Object Name,Length | Format-Table -AutoSize | Out-String
           Write-Host "=== MOTOR CIKTISI ==="; Get-Content motor.log -Tail 20
           Write-Host ("SONUC: OK=" + $ok + " HATA=" + $hata)
           if ($ok -lt 4) { exit 1 }
