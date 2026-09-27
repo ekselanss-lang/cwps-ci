@@ -49,3 +49,19 @@ jobs:
           Write-Host ("SONUC: OK=" + $ok + " HATA=" + $hata)
           if ($ok -lt 4) { exit 1 }
           Write-Host '--- TUMU TAMAM ---'
+
+      - name: Iki kopya motor testi
+        shell: pwsh
+        run: |
+          $t = Get-Content .sifre -Raw
+          $t = $t.Trim()
+          Expand-Archive -Path paket.zip -DestinationPath . -Force -ErrorAction SilentlyContinue
+          $exe = Get-ChildItem -Recurse -Filter CWPS.exe | Select-Object -First 1
+          Write-Host "EXE: $($exe.FullName)"
+          $p1 = Start-Process $exe.FullName -PassThru; Start-Sleep -Seconds 12
+          $p2 = Start-Process $exe.FullName -PassThru; Start-Sleep -Seconds 12
+          foreach ($port in 48921..48930) {
+            try { $r = Invoke-RestMethod -Uri "http://127.0.0.1:$port/api/durum?t=cwps-yerel-9f3a7d" -TimeoutSec 5
+                  Write-Host "PORT $port CEVAP VERDI -> surum $($r.surum)" } catch {}
+          }
+          Stop-Process -Id $p1.Id,$p2.Id -Force -ErrorAction SilentlyContinue
