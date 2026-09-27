@@ -21,14 +21,14 @@ jobs:
           $T = "t=cwps-yerel-9f3a7d"
           foreach ($u in @(
             "ham?h=127.0.0.1&yol=/lfi%3Ffile..%2Fpasswd",
-            "ham?h=127.0.0.1&port=8080&yol=/lfi?file=passwd",
-            "ham?h=127.0.0.1&port=8080&yol=/cmd?cmd=id",
-            "lfi?h=127.0.0.1&port=8080&yol=/lfi&prm=file",
-            "cmdenj?h=127.0.0.1&port=8080&yol=/cmd&prm=cmd",
-            "sqli?h=127.0.0.1&port=8080&yol=/sqli&prm=id",
-            "varsayilan?h=127.0.0.1&port=8080&yol=/login",
+            "ham?h=127.0.0.1&port=18080&yol=/lfi?file=passwd",
+            "ham?h=127.0.0.1&port=18080&yol=/cmd?cmd=id",
+            "lfi?h=127.0.0.1&port=18080&yol=/lfi&prm=file",
+            "cmdenj?h=127.0.0.1&port=18080&yol=/cmd&prm=cmd",
+            "sqli?h=127.0.0.1&port=18080&yol=/sqli&prm=id",
+            "varsayilan?h=127.0.0.1&port=18080&yol=/login",
             "esveri?h=127.0.0.1&port=9200",
-            "zincir?h=127.0.0.1&port=8080")) {
+            "zincir?h=127.0.0.1&port=18080")) {
             try { $r = Invoke-RestMethod "http://127.0.0.1:48921/api/$u&$T" -TimeoutSec 120
                   Write-Host "SONUC $u => $($r | ConvertTo-Json -Compress -Depth 4)" } catch { Write-Host "HATA $u => $($_.Exception.Message)" }
           }
