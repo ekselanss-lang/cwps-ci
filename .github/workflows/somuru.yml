@@ -20,13 +20,13 @@ jobs:
           Start-Sleep -Seconds 15
           $T = "t=cwps-yerel-9f3a7d"
           foreach ($u in @(
-            "ham?h=127.0.0.1&yol=/lfi?file=%2E%2E%2Fetc%2Fpasswd",
-            "lfi?h=127.0.0.1&yol=/lfi&prm=file",
-            "cmdenj?h=127.0.0.1&yol=/cmd&prm=cmd",
-            "sqli?h=127.0.0.1&yol=/sqli&prm=id",
-            "varsayilan?h=127.0.0.1&yol=/login",
+            "ham?h=127.0.0.1&yol=/lfi%3Ffile..%2Fpasswd",
+            "lfi?h=127.0.0.1&port=8080&yol=/lfi&prm=file",
+            "cmdenj?h=127.0.0.1&port=8080&yol=/cmd&prm=cmd",
+            "sqli?h=127.0.0.1&port=8080&yol=/sqli&prm=id",
+            "varsayilan?h=127.0.0.1&port=8080&yol=/login",
             "esveri?h=127.0.0.1&port=9200",
-            "zincir?h=127.0.0.1")) {
+            "zincir?h=127.0.0.1&port=8080")) {
             try { $r = Invoke-RestMethod "http://127.0.0.1:48921/api/$u&$T" -TimeoutSec 120
                   Write-Host "SONUC $u => $($r | ConvertTo-Json -Compress -Depth 4)" } catch { Write-Host "HATA $u => $($_.Exception.Message)" }
           }
