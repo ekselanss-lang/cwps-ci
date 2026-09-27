@@ -31,7 +31,7 @@ jobs:
           Start-Process -FilePath .\motor.exe -NoNewWindow -RedirectStandardOutput motor.log
           Start-Sleep -Seconds 6
           $t = "cwps-yerel-9f3a7d"
-          $uclar = @("tani","modul","modulcalistir?modul=cms_tara&h=cyberwolfsec.com&kendi=1","tara?h=scanme.nmap.org&p1=22&p2=100&th=64")
+          $uclar = @("modulcalistir?modul=cms_tara&h=cyberwolfsec.com&kendi=1","kimliksiz?h=cyberwolfsec.com&kendi=1","raporpdf?h=cyberwolfsec.com&yol=/&kendi=1")
           $ok=0; $hata=0
           foreach ($u in $uclar) {
             $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
