@@ -29,15 +29,15 @@ jobs:
         shell: pwsh
         run: |
           Start-Process -FilePath .\motor.exe -NoNewWindow -RedirectStandardOutput motor.log
-          Start-Sleep -Seconds 6
+          Start-Sleep -Seconds 5
           $t = "cwps-yerel-9f3a7d"
-          $uclar = @("modulcalistir?modul=cms_tara&h=cyberwolfsec.com&kendi=1","kimliksiz?h=cyberwolfsec.com&kendi=1","raporpdf?h=cyberwolfsec.com&yol=/&kendi=1")
+          $uclar = @("modulcalistir?modul=admin&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=sql_veri_cikar&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=sql_kayit_dok&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=lfi_dosya_oku&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=rce_komut&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=xss_yansima&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=ssrf_ic_ag&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=dosya_yukle&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=varsayilan_sifre&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=oturum_kir&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=jwt_kir&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=smb_null&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=smb_relay_deneme&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=snmp_tarama&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=redis_eris&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=mongo_eris&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=elastic_eris&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=ftp_anon&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=smb_eternalblue&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=rdp_bluekeep&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=ldap_anon&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=dinleyici_ters&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_exe&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_php&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_asp&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_elf&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_py&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=yuk_jsp&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=port_tara&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=servis_parmak&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=cve_esle&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=zafiyet_tara&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=dizin_tara&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=altalan_tara&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=cms_tara&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=api_kesif&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=bulut_kontrol&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=ssl_analiz&h=cyberwolfsec.com&yol=/&kendi=1","modulcalistir?modul=web_basliklar&h=cyberwolfsec.com&yol=/&kendi=1")
           $ok=0; $hata=0
           foreach ($u in $uclar) {
             $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
             $url = "http://127.0.0.1:48921/api/" + $u + $sep + "t=" + $t
             try {
-              $r = Invoke-WebRequest -Uri $url -TimeoutSec 90 -UseBasicParsing
+              $r = Invoke-WebRequest -Uri $url -TimeoutSec 75 -UseBasicParsing
               Write-Host ("OK  " + $u + " -> " + $r.Content.Substring(0,[Math]::Min(150,$r.Content.Length))); $ok++
             } catch { Write-Host ("HATA " + $u + " -> " + $_); $hata++ }
           }
