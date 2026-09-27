@@ -20,6 +20,7 @@ jobs:
           Start-Sleep -Seconds 15
           $T = "t=cwps-yerel-9f3a7d"
           foreach ($u in @(
+            "ham?h=127.0.0.1&yol=/lfi?file=%2E%2E%2Fetc%2Fpasswd",
             "lfi?h=127.0.0.1&yol=/lfi&prm=file",
             "cmdenj?h=127.0.0.1&yol=/cmd&prm=cmd",
             "sqli?h=127.0.0.1&yol=/sqli&prm=id",
