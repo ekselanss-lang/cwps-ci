@@ -21,6 +21,8 @@ jobs:
           $T = "t=cwps-yerel-9f3a7d"
           foreach ($u in @(
             "ham?h=127.0.0.1&yol=/lfi%3Ffile..%2Fpasswd",
+            "ham?h=127.0.0.1&port=8080&yol=/lfi?file=passwd",
+            "ham?h=127.0.0.1&port=8080&yol=/cmd?cmd=id",
             "lfi?h=127.0.0.1&port=8080&yol=/lfi&prm=file",
             "cmdenj?h=127.0.0.1&port=8080&yol=/cmd&prm=cmd",
             "sqli?h=127.0.0.1&port=8080&yol=/sqli&prm=id",
