@@ -31,7 +31,7 @@ jobs:
           Start-Process -FilePath .\motor.exe -NoNewWindow -RedirectStandardOutput motor.log
           Start-Sleep -Seconds 6
           $t = "cwps-yerel-9f3a7d"
-          $uclar = @("durum","yuk?lhost=1.2.3.4&lport=4444","dinleyici?durum=basla&lport=4666","dinleyici")
+          $uclar = @("tani","modul","modulcalistir?modul=cms_tara&h=cyberwolfsec.com&kendi=1","tara?h=scanme.nmap.org&p1=22&p2=100&th=64")
           $ok=0; $hata=0
           foreach ($u in $uclar) {
             $sep = "?"; if ($u.Contains("?")) { $sep = "&" }
@@ -42,7 +42,8 @@ jobs:
             } catch { Write-Host ("HATA " + $u + " -> " + $_); $hata++ }
           }
           Write-Host "=== PDF KONTROL ==="; if(Test-Path rapor.pdf){ $p=Get-Item rapor.pdf; Write-Host ("PDF: " + $p.Length + " bayt"); $h=Get-Content rapor.pdf -TotalCount 1; Write-Host ("PDF BASLIK: " + $h) } else { Write-Host "PDF YOK" }
-          Write-Host "=== PAYLOAD DOSYALARI ==="; Get-ChildItem payloadlar -ErrorAction SilentlyContinue | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+          Write-Host "=== PAYLOAD DOSYALARI ==="; Write-Host "=== TANI ==="; if(Test-Path motor.log){ Get-Content motor.log | Select-String "TANI|uclar" | Select-Object -First 3 | Out-String }
+          Get-ChildItem payloadlar -ErrorAction SilentlyContinue | Select-Object Name,Length | Format-Table -AutoSize | Out-String
           Write-Host "=== MOTOR CIKTISI ==="; Get-Content motor.log -Tail 20
           Write-Host ("SONUC: OK=" + $ok + " HATA=" + $hata)
           if ($ok -lt 4) { exit 1 }
