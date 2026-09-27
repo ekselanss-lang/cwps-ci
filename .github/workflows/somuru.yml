@@ -1,0 +1,32 @@
+name: somuru
+on: [push, workflow_dispatch]
+jobs:
+  s:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Get-ChildItem
+      - name: somuru testi
+        shell: pwsh
+        run: |
+          Start-Process python -ArgumentList "vuln.py" -WindowStyle Hidden
+          Start-Sleep -Seconds 4
+          $p = Start-Process .\CWPS.exe -PassThru
+          Start-Sleep -Seconds 15
+          $T = "t=cwps-yerel-9f3a7d"
+          foreach ($u in @(
+            "lfi?h=127.0.0.1&yol=/lfi&prm=file",
+            "cmdenj?h=127.0.0.1&yol=/cmd&prm=cmd",
+            "sqli?h=127.0.0.1&yol=/sqli&prm=id",
+            "varsayilan?h=127.0.0.1&yol=/login",
+            "esveri?h=127.0.0.1&port=9200",
+            "zincir?h=127.0.0.1")) {
+            try { $r = Invoke-RestMethod "http://127.0.0.1:48921/api/$u&$T" -TimeoutSec 120
+                  Write-Host "SONUC $u => $($r | ConvertTo-Json -Compress -Depth 4)" } catch { Write-Host "HATA $u => $($_.Exception.Message)" }
+          }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
