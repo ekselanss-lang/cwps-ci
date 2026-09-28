@@ -15,20 +15,23 @@ jobs:
         shell: pwsh
         run: |
           Start-Process python -ArgumentList "vuln.py" -WindowStyle Hidden
-          Start-Sleep -Seconds 4
+          Start-Sleep -Seconds 5
+          try { $chk = (Invoke-WebRequest "http://127.0.0.1:19090/lfi?file=passwd" -TimeoutSec 10).Content
+                Write-Host "SUNUCU OZ-KONTROL: $($chk.Substring(0,[Math]::Min(40,$chk.Length)))" }
+          catch { Write-Host "SUNUCU OZ-KONTROL BASARISIZ: $($_.Exception.Message)" }
           $p = Start-Process .\CWPS.exe -PassThru
           Start-Sleep -Seconds 15
           $T = "t=cwps-yerel-9f3a7d"
           foreach ($u in @(
             "ham?h=127.0.0.1&yol=/lfi%3Ffile..%2Fpasswd",
-            "ham?h=127.0.0.1&port=18080&yol=/lfi?file=passwd",
-            "ham?h=127.0.0.1&port=18080&yol=/cmd?cmd=id",
-            "lfi?h=127.0.0.1&port=18080&yol=/lfi&prm=file",
-            "cmdenj?h=127.0.0.1&port=18080&yol=/cmd&prm=cmd",
-            "sqli?h=127.0.0.1&port=18080&yol=/sqli&prm=id",
-            "varsayilan?h=127.0.0.1&port=18080&yol=/login",
+            "ham?h=127.0.0.1&port=19090&yol=/lfi?file=passwd",
+            "ham?h=127.0.0.1&port=19090&yol=/cmd?cmd=id",
+            "lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file",
+            "cmdenj?h=127.0.0.1&port=19090&yol=/cmd&prm=cmd",
+            "sqli?h=127.0.0.1&port=19090&yol=/sqli&prm=id",
+            "varsayilan?h=127.0.0.1&port=19090&yol=/login",
             "esveri?h=127.0.0.1&port=9200",
-            "zincir?h=127.0.0.1&port=18080")) {
+            "zincir?h=127.0.0.1&port=19090")) {
             try { $r = Invoke-RestMethod "http://127.0.0.1:48921/api/$u&$T" -TimeoutSec 120
                   Write-Host "SONUC $u => $($r | ConvertTo-Json -Compress -Depth 4)" } catch { Write-Host "HATA $u => $($_.Exception.Message)" }
           }
