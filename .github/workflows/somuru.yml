@@ -31,6 +31,8 @@ jobs:
             "sqli?h=127.0.0.1&port=19090&yol=/sqli&prm=id",
             "varsayilan?h=127.0.0.1&port=19090&yol=/login",
             "esveri?h=127.0.0.1&port=9200",
+            "redisveri?h=127.0.0.1",
+            "ftpveri?h=127.0.0.1",
             "zincir?h=127.0.0.1&port=19090")) {
             try { $r = Invoke-RestMethod "http://127.0.0.1:48921/api/$u&$T" -TimeoutSec 120
                   Write-Host "SONUC $u => $($r | ConvertTo-Json -Compress -Depth 4)" } catch { Write-Host "HATA $u => $($_.Exception.Message)" }
