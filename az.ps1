@@ -37,4 +37,10 @@ foreach ($x in $liste) {
   } catch { Write-Host ("HATA " + $x.u + " -> " + $_.Exception.Message); $hata++ }
 }
 Write-Host ("OZET: TAMAM=$ok BOS=$bos HATA=$hata")
+Write-Host "--- KUCUK CEVAPLARIN ICERIGI ---"
+$sup = @("modulcalistir|?modul=cms_tara&h=127.0.0.1&port=19090","cms|?h=127.0.0.1&port=19090","api|?h=127.0.0.1&port=19090","kimliksiz|?h=127.0.0.1","ftpveri|?h=127.0.0.1","dizin|?h=127.0.0.1&port=19090&limit=40","yonlendirme|?h=127.0.0.1&port=19090&yol=/")
+foreach ($s in $sup) {
+  $pr = $s.Split("|"); $u = "http://127.0.0.1:48921/api/" + $pr[0] + $pr[1] + "&" + $T
+  try { $r = Invoke-WebRequest $u -TimeoutSec 90 -UseBasicParsing; Write-Host ("ICERIK " + $pr[0] + " => " + $r.Content.Substring(0,[Math]::Min(260,$r.Content.Length))) } catch {}
+}
 Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
