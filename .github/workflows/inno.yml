@@ -19,9 +19,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path paket | Out-Null
           Copy-Item CWPS.exe paket\
           Copy-Item CWPS.iss paket\
-          Copy-Item OKU-BENI.txt paket\
-          Copy-Item -Recurse araclar paket\araclar
-          Copy-Item -Recurse listeler paket\listeler
+          if (Test-Path OKU-BENI.txt) { Copy-Item OKU-BENI.txt paket\ }
+          if (Test-Path araclar) { Copy-Item -Recurse araclar paket\araclar }
+          if (Test-Path listeler) { Copy-Item -Recurse listeler paket\listeler }
           cd paket
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" CWPS.iss | Select-Object -Last 8
           Get-ChildItem Output | Select-Object Name,Length

@@ -12,7 +12,6 @@ SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 WizardStyle=modern
-SetupIconFile=icon.ico
 UninstallDisplayName=CYBERWOLF SECURITY {#SURUM}
 DisableProgramGroupPage=yes
 
@@ -27,7 +26,6 @@ Name: "duvar"; Description: "Defender'a klasör istisnası ekle (önerilir)"; Gr
 [Files]
 Source: "CWPS.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "OKU-BENI.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
-Source: "listeler\*"; DestDir: "{app}\listeler"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\CYBERWOLF SECURITY"; Filename: "{app}\CWPS.exe"
