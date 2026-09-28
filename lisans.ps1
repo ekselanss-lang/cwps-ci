@@ -16,10 +16,13 @@ $k = $k.Trim()
 Write-Host ("URETILEN=" + $k)
 Set-Content -Path "lisans.anahtar" -Value ($mk + ":" + $k) -NoNewline -Encoding ascii
 Stop-Process -Id $p.Id -Force; Start-Sleep -Seconds 5
-Remove-Item .\lisans.anahtar -ErrorAction SilentlyContinue
-Copy-Item lisans.anahtar -ErrorAction SilentlyContinue
 $p2 = Start-Process .\CWPS.exe -PassThru; Start-Sleep -Seconds 14
 $P2 = PortBul; Write-Host ("PORT2=" + $P2)
+$proc = Get-Process CWPS -ErrorAction SilentlyContinue
+Write-Host ("PROC2 sayisi=" + ($proc | Measure-Object).Count)
+Write-Host "--- BASLA LOG ---"
+$lg = Join-Path $env:TEMP "cwps_basla.log"
+if (Test-Path $lg) { Get-Content $lg | Select-Object -Last 12 | ForEach-Object { Write-Host ("LOG: " + $_) } } else { Write-Host "LOG YOK" }
 if ($P2 -gt 0) {
   $l2 = Invoke-RestMethod "http://127.0.0.1:$P2/api/lisans?$T" -TimeoutSec 30
   Write-Host ("LISANS2 surum=" + $l2.surum + " lisans=" + $l2.lisans)
