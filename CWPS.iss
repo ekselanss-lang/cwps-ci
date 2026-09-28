@@ -27,7 +27,6 @@ Name: "duvar"; Description: "Defender'a klasör istisnası ekle (önerilir)"; Gr
 [Files]
 Source: "CWPS.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "OKU-BENI.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
-Source: "araclar\*"; DestDir: "{app}\araclar"; Flags: ignoreversion recursesubdirs
 Source: "listeler\*"; DestDir: "{app}\listeler"; Flags: ignoreversion recursesubdirs
 
 [Icons]
