@@ -9,7 +9,7 @@ function PortBul {
 $p = Start-Process .\CWPS.exe -PassThru; Start-Sleep -Seconds 14
 $P1 = PortBul; Write-Host ("PORT1=" + $P1)
 $l = Invoke-RestMethod "http://127.0.0.1:$P1/api/lisans?$T" -TimeoutSec 30
-Write-Host ("LISANS1 surum=" + $l.surum + " makine=" + $l.makine)
+Write-Host ("LISANS1 surum=" + $l.surum + " makine=" + $l.makine + " deneme_kalan=" + $l.deneme_kalan + " bitti=" + $l.deneme_bitti)
 $mk = $l.makine
 $k = (& .\CWPS-Keygen.exe $mk | Select-String "URETILEN ANAHTAR") -replace ".*: ",""
 $k = $k.Trim()
@@ -25,7 +25,7 @@ $lg = Join-Path $env:TEMP "cwps_basla.log"
 if (Test-Path $lg) { Get-Content $lg | Select-Object -Last 12 | ForEach-Object { Write-Host ("LOG: " + $_) } } else { Write-Host "LOG YOK" }
 if ($P2 -gt 0) {
   $l2 = Invoke-RestMethod "http://127.0.0.1:$P2/api/lisans?$T" -TimeoutSec 30
-  Write-Host ("LISANS2 surum=" + $l2.surum + " lisans=" + $l2.lisans)
+  Write-Host ("LISANS2 surum=" + $l2.surum + " lisans=" + $l2.lisans + " deneme_kalan=" + $l2.deneme_kalan)
   try { $z = Invoke-RestMethod "http://127.0.0.1:$P2/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
         Write-Host ("LFI-FULL => " + (($z | ConvertTo-Json -Compress -Depth 4) -replace "\s+"," ").Substring(0,[Math]::Min(200,(($z | ConvertTo-Json -Compress -Depth 4)).Length))) } catch { Write-Host ("LFI HATA: " + $_.Exception.Message) }
   Stop-Process -Id $p2.Id -Force -ErrorAction SilentlyContinue
