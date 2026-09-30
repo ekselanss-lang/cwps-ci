@@ -10,6 +10,7 @@ function PortBul { foreach ($pt in 48921..48960) { try { $r=Invoke-RestMethod "h
 # ---- temiz kurulum (deneme sayaci sifir) ----
 Remove-Item -Recurse -Force "$env:APPDATA\CyberWolfSec" -ErrorAction SilentlyContinue
 Remove-Item -Force .\lisans.anahtar -ErrorAction SilentlyContinue
+Remove-Item -Force "$env:APPDATA\CyberWolfSec\lisans.anahtar" -ErrorAction SilentlyContinue
 Start-Process python -ArgumentList "vuln.py" -WindowStyle Hidden
 Start-Sleep -Seconds 5
 
@@ -56,10 +57,11 @@ Sonuc "4a anahtar bicimi" "^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$" $k
 try { $y2=Invoke-RestMethod "http://127.0.0.1:$P1/api/lisansyukle?k=$k&$T" -TimeoutSec 30
       $s=($y2|ConvertTo-Json -Compress -Depth 4); Sonuc "4b anahtar kabul edildi" '"gecerli":true' $s } catch { Sonuc "4b anahtar kabulu" '"gecerli":true' $_.Exception.Message }
 $l3=Invoke-RestMethod "http://127.0.0.1:$P1/api/lisans?$T" -TimeoutSec 30
+Sonuc "4h lisans yolu APPDATA" "AppData" $l3.lisans_dosya
 Write-Host ("4 | surum=" + $l3.surum + " mod=" + $l3.mod + " lisans=" + $l3.lisans)
 Sonuc "4c FULL aktif"  "FULL" $l3.mod
 Sonuc "4d lisans gecerli" "gecerli" $l3.lisans
-Sonuc "4e lisans.anahtar yazildi" "True" (Test-Path .\lisans.anahtar)
+Sonuc "4e lisans.anahtar (APPDATA) yazildi" "True" (Test-Path "$env:APPDATA\CyberWolfSec\lisans.anahtar")
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "4f somuru FULL'de ACIK" "root:" $s } catch { Sonuc "4f somuru" "root:" $_.Exception.Message }
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?h=127.0.0.1&yol=/&$T" -TimeoutSec 60

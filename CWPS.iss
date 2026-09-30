@@ -8,7 +8,7 @@
 #define SURUM     "9.9"
 #define YAYINCI   "CyberWolfSec"
 #define URL       "https://cyberwolfsec.com"
-#define APPID     "8F3C1B42-6A7E-4D19-9C2B-71A55E30D9C1"
+#define APPID     "{{8F3C1B42-6A7E-4D19-9C2B-71A55E30D9C1}"
 
 #ifdef SATICI
   #define SURUM_EK  "-SATICI"
@@ -19,7 +19,7 @@
 #endif
 
 [Setup]
-AppId={{#APPID}
+AppId={#APPID}
 AppName=CYBERWOLF SECURITY
 AppVersion={#SURUM}
 AppVerName=CYBERWOLF SECURITY {#SURUM}
