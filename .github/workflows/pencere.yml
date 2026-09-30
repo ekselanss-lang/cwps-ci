@@ -1,0 +1,80 @@
+name: pencere
+on: [push, workflow_dispatch]
+jobs:
+  p:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          if (-not (Test-Path CWPS.exe)) { Write-Host "HATA: CWPS.exe yok"; exit 1 }
+          Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: SENARYO 1 - ESKI EXE (hata var mi kontrolu)
+        shell: pwsh
+        run: |
+          function Temizle {
+            Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Get-Process msedge,chrome,firefox -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 4
+          }
+          function SayPencereler($etiket) {
+            $penc = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'cwps_ui' -and $_.Name -notmatch 'pwsh|powershell|conhost|cmd' }
+            $app  = @($penc | Where-Object { $_.CommandLine -match '--app=' })
+            $duz  = @($penc | Where-Object { $_.CommandLine -notmatch '--app=' })
+            Write-Host "$etiket | uygulama penceresi (--app): $($app.Count)"
+            Write-Host "$etiket | YEDEK YOL (app'siz): $($duz.Count)"
+            $penc | ForEach-Object { Write-Host ("     [" + $_.Name + "] " + $_.CommandLine.Substring(0,[Math]::Min(150,$_.CommandLine.Length))) }
+            Write-Host "$etiket | msedge surec: $(@(Get-Process msedge -ErrorAction SilentlyContinue).Count)"
+          }
+          Temizle
+          Write-Host "=== ESKI EXE · Edge kapali ==="
+          $p = Start-Process .\CWPS-eski.exe -PassThru
+          Start-Sleep -Seconds 30
+          Write-Host "1 | program canli: $(-not $p.HasExited)"
+          SayPencereler "1-ESKI-EdgeKapali"
+          Temizle
+          Write-Host "=== ESKI EXE · Edge ACIK (kullanicinin gordugu durum) ==="
+          Start-Process msedge -ArgumentList 'about:blank' -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 10
+          Write-Host "1b | onceden acik msedge: $(@(Get-Process msedge -ErrorAction SilentlyContinue).Count)"
+          $p = Start-Process .\CWPS-eski.exe -PassThru
+          Start-Sleep -Seconds 30
+          Write-Host "1b | program canli: $(-not $p.HasExited)"
+          SayPencereler "1b-ESKI-EdgeAcik"
+          Temizle
+      - name: SENARYO 2 - YENI EXE (duzeltme)
+        shell: pwsh
+        run: |
+          function Temizle {
+            Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Get-Process msedge,chrome,firefox -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 4
+          }
+          function SayPencereler($etiket) {
+            $penc = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'cwps_ui' -and $_.Name -notmatch 'pwsh|powershell|conhost|cmd' }
+            $app  = @($penc | Where-Object { $_.CommandLine -match '--app=' })
+            $duz  = @($penc | Where-Object { $_.CommandLine -notmatch '--app=' })
+            Write-Host "$etiket | uygulama penceresi (--app): $($app.Count)"
+            Write-Host "$etiket | YEDEK YOL (app'siz): $($duz.Count)"
+            $penc | ForEach-Object { Write-Host ("     [" + $_.Name + "] " + $_.CommandLine.Substring(0,[Math]::Min(150,$_.CommandLine.Length))) }
+            Write-Host "$etiket | msedge surec: $(@(Get-Process msedge -ErrorAction SilentlyContinue).Count)"
+          }
+          Temizle
+          Write-Host "=== YENI EXE · Edge kapali ==="
+          $p = Start-Process .\CWPS.exe -PassThru
+          Start-Sleep -Seconds 30
+          Write-Host "2 | program canli: $(-not $p.HasExited)"
+          SayPencereler "2-YENI-EdgeKapali"
+          Temizle
+          Write-Host "=== YENI EXE · Edge ACIK ==="
+          Start-Process msedge -ArgumentList 'about:blank' -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 10
+          Write-Host "2b | onceden acik msedge: $(@(Get-Process msedge -ErrorAction SilentlyContinue).Count)"
+          $p = Start-Process .\CWPS.exe -PassThru
+          Start-Sleep -Seconds 30
+          Write-Host "2b | program canli: $(-not $p.HasExited)"
+          SayPencereler "2b-YENI-EdgeAcik"
+          Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
