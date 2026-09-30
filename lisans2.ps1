@@ -38,7 +38,7 @@ Sonuc "2c deneme bitti"      "true"  $l2.deneme_bitti
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2d somuru KILITLI" "LISANS GEREKLI" $s } catch { Sonuc "2d somuru" "LISANS GEREKLI" $_.Exception.Message }
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?h=127.0.0.1&yol=/&$T" -TimeoutSec 60
-      $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2e PDF KILITLI" "FULL-SURUMDE" $s } catch { Sonuc "2e PDF" "FULL-SURUMDE" $_.Exception.Message }
+      $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2e PDF KILITLI" "FULL surumde" $s } catch { Sonuc "2e PDF" "FULL-SURUMDE" $_.Exception.Message }
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/modulcalistir?h=127.0.0.1&modul=rce_komut&yol=/&p=id&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2f modul KILITLI" "FULL surumde aktif" $s } catch { Sonuc "2f modul" "FULL surumde aktif" $_.Exception.Message }
 
