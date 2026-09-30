@@ -1,0 +1,45 @@
+CYBERWOLF SECURITY — KULLANIM LİSANSI VE SORUMLULUK SÖZLEŞMESİ
+Sürüm 9.9 · CyberWolfSec
+=========================================================================
+
+Bu yazılımı kurmadan önce lütfen tamamını okuyun. Kurulumu tamamlamak,
+aşağıdaki şartları kabul ettiğiniz anlamına gelir.
+
+1) NE İŞE YARAR
+   CYBERWOLF SECURITY, bir siber güvenlik operasyon ve sızma testi
+   aracıdır. Yalnızca YETKİLİ olduğunuz sistemlerde güvenlik testi
+   yapmak için geliştirilmiştir.
+
+2) YETKİ ZORUNLULUĞU
+   Programı yalnızca:
+   - kendi sahip olduğunuz sistemlerde,
+   - yazılı izin aldığınız müşteri sistemlerinde
+   kullanabilirsiniz. İzinsiz test etmek birçok ülkede suçtur.
+
+3) YASAK KULLANIM
+   Programın kötüye kullanımından tamamen kullanıcı sorumludur.
+   Üçüncü kişilere zarar verecek, izinsiz erişim sağlayacak veya
+   hukuka aykırı hiçbir amaçla kullanılamaz.
+
+4) LİSANS VE DENEME SÜRESİ
+   - İlk 15 gün FULL sürüm olarak çalışır (tüm modüller açık).
+   - 15 gün sonunda program DEMO sürümüne geçer (kısıtlı modüller).
+   - Satıcıdan alınan lisans anahtarı programa yazıldığında FULL
+     sürüm kalıcı olarak açılır.
+   - Lisans anahtarı size bildirilen makine koduna bağlıdır; başka
+     bilgisayarlarda çalışmaz. Devredilemez, çoğaltılamaz.
+
+5) GARANTİ SINIRI
+   Yazılım "olduğu gibi" sunulur. Test sonuçlarının doğruluğu ve
+   kullanımından doğacak sonuçlar kullanıcının sorumluluğundadır.
+   Satıcı, veri kaybı veya üçüncü kişi zararlarından sorumlu tutulamaz.
+
+6) GİZLİLİK
+   Program çalışırken toplanan tarama verileri YALNIZCA bilgisayarınızda
+   kalır; hiçbir sunucuya gönderilmez. Lisans doğrulaması da çevrimdışı
+   yapılır.
+
+7) DESTEK
+   Lisans, kurulum ve teknik destek: satıcı ile iletişime geçin.
+
+© 2026 CyberWolfSec — Tüm hakları saklıdır.

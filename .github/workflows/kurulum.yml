@@ -1,0 +1,108 @@
+name: kurulum
+on: [push, workflow_dispatch]
+jobs:
+  k:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kaynagi coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: Inno Setup kur
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+      - name: Diller klasoru kontrol (Turkish.isl)
+        shell: pwsh
+        run: |
+          $d="C:\Program Files (x86)\Inno Setup 6\Languages"
+          if(Test-Path $d){ (Get-ChildItem $d -Filter *.isl | Select-Object -ExpandProperty Name) -join ", " }
+          else { Write-Host "DIL KLASORU YOK" }
+      - name: Gomulu araclari indir (8 arac)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path araclar | Out-Null
+          foreach ($r in @("subfinder","httpx","naabu","katana","dnsx")) {
+            $rel = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/$r/releases/latest"
+            $a = $rel.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+            Write-Host "$r -> $($a.name)"
+            Invoke-WebRequest $a.browser_download_url -OutFile "$r.zip" -UseBasicParsing
+            Expand-Archive "$r.zip" -DestinationPath "t_$r" -Force
+            $exe = Get-ChildItem "t_$r" -Recurse -Filter "$r.exe" | Select-Object -First 1
+            Copy-Item $exe.FullName "araclar\$r.exe" -Force
+          }
+          Invoke-WebRequest "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_windows_amd64.zip" -OutFile ffuf.zip -UseBasicParsing
+          Expand-Archive ffuf.zip -DestinationPath t_ffuf -Force
+          Copy-Item (Get-ChildItem t_ffuf -Recurse -Filter ffuf.exe | Select-Object -First 1).FullName "araclar\ffuf.exe" -Force
+          Invoke-WebRequest "https://github.com/OJ/gobuster/releases/download/v3.6.0/gobuster_Windows_x86_64.zip" -OutFile gb.zip -UseBasicParsing
+          Expand-Archive gb.zip -DestinationPath t_gb -Force
+          Copy-Item (Get-ChildItem t_gb -Recurse -Filter gobuster.exe | Select-Object -First 1).FullName "araclar\gobuster.exe" -Force
+          Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
+          Expand-Archive nmap.zip -DestinationPath t_nmap -Force
+          Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
+          Write-Host "=== ARAÇLAR ==="
+          Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: KURULUM DERLE (musteri)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" CWPS.iss | Select-Object -Last 12
+          Get-ChildItem Output | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: KURULUM DERLE (satici)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DSATICI /OOutputSatici CWPS.iss | Select-Object -Last 8
+          Get-ChildItem OutputSatici | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: GERCEK KURULUM TESTI (sessiz kur + dosya kontrol)
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem Output -Filter *.exe | Select-Object -First 1)
+          Write-Host ("KURULUM PAKETI: " + $setup.Name + "  " + [Math]::Round($setup.Length/1MB,1) + " MB")
+          $p = Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=C:\CWPS-TEST","/LOG=C:\kurulum.log" -PassThru -Wait
+          Write-Host ("CIKIS KODU: " + $p.ExitCode)
+          Start-Sleep -Seconds 3
+          $ok=0; $hata=0
+          function Kontrol($ad,$yol){
+            if(Test-Path $yol){ Write-Host ("PASS  " + $ad + " -> " + [Math]::Round((Get-Item $yol).Length/1KB,0) + " KB"); $script:ok++ }
+            else { Write-Host ("FAIL  " + $ad + " YOK -> " + $yol); $script:hata++ } }
+          Kontrol "CWPS.exe"            "C:\CWPS-TEST\CWPS.exe"
+          Kontrol "OKU-BENI.txt"        "C:\CWPS-TEST\OKU-BENI.txt"
+          Kontrol "LISANS.txt"          "C:\CWPS-TEST\LISANS.txt"
+          Kontrol "araclar\nmap.exe"    "C:\CWPS-TEST\araclar\nmap.exe"
+          Kontrol "araclar\ffuf.exe"    "C:\CWPS-TEST\araclar\ffuf.exe"
+          Kontrol "araclar\subfinder.exe" "C:\CWPS-TEST\araclar\subfinder.exe"
+          Kontrol "araclar\httpx.exe"   "C:\CWPS-TEST\araclar\httpx.exe"
+          Kontrol "araclar\katana.exe"  "C:\CWPS-TEST\araclar\katana.exe"
+          Kontrol "kaldirma araci"      "C:\CWPS-TEST\unins000.exe"
+          if(Test-Path "C:\CWPS-TEST\CWPS-Keygen.exe"){ Write-Host "FAIL  MUSTERI surumunde KEYGEN var (olmamali)"; $hata++ }
+          else { Write-Host "PASS  musteri surumunde keygen YOK"; $ok++ }
+          # Program gercekten calisiyor mu? (motor ayaga kalkmali)
+          $pr = Start-Process "C:\CWPS-TEST\CWPS.exe" -PassThru
+          Start-Sleep -Seconds 14
+          $port=0
+          foreach($pt in 48921..48960){ try{ $r=Invoke-RestMethod "http://127.0.0.1:$pt/api/durum?t=cwps-yerel-9f3a7d" -TimeoutSec 3; $port=$pt; break }catch{} }
+          if($port -gt 0){
+            $l = Invoke-RestMethod "http://127.0.0.1:$port/api/lisans?t=cwps-yerel-9f3a7d" -TimeoutSec 20
+            Write-Host ("PASS  kurulan program calisti: port=" + $port + " surum=" + $l.surum + " mod=" + $l.mod + " makine=" + $l.makine); $ok++
+            # lisans yazma izni var mi? (Program Files yerine kullanici klasoru)
+            $test = "C:\CWPS-TEST\yazma_testi.txt"
+            try { Set-Content -Path $test -Value "ok" -ErrorAction Stop; Write-Host "PASS  program klasorune yazilabiliyor (lisans kaydedilebilir)"; $ok++; Remove-Item $test -Force } catch { Write-Host "FAIL  klasore yazilamiyor (lisans kaydedilemez)"; $hata++ }
+          } else { Write-Host "FAIL  kurulan program motoru ayaga kalkmadi"; $hata++ }
+          Stop-Process -Id $pr.Id -Force -ErrorAction SilentlyContinue
+          Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Write-Host ("=== KURULUM TESTI: PASS=" + $ok + " FAIL=" + $hata + " ===")
+      - name: GERCEK KALDIRMA TESTI
+        shell: pwsh
+        run: |
+          Start-Process "C:\CWPS-TEST\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          Start-Sleep -Seconds 5
+          if(Test-Path "C:\CWPS-TEST\CWPS.exe"){ Write-Host "FAIL  kaldirma sonrasi exe duruyor" }
+          else { Write-Host "PASS  kaldirma calisti (exe silindi)" }
+          if(Test-Path "C:\CWPS-TEST"){ Write-Host ("KALAN: " + ((Get-ChildItem "C:\CWPS-TEST" -Force | Select-Object -ExpandProperty Name) -join ", ")) } else { Write-Host "PASS  klasor tamamen silindi" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CWPS-Kurulum
+          path: |
+            Output/*.exe
+            OutputSatici/*.exe
