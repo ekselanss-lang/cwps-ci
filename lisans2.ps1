@@ -62,6 +62,7 @@ Write-Host ("4 | surum=" + $l3.surum + " mod=" + $l3.mod + " lisans=" + $l3.lisa
 Sonuc "4c FULL aktif"  "FULL" $l3.mod
 Sonuc "4d lisans gecerli" "gecerli" $l3.lisans
 Sonuc "4e lisans.anahtar (APPDATA) yazildi" "True" (Test-Path "$env:APPDATA\CyberWolfSec\lisans.anahtar")
+Sonuc "4i kayit defteri de yazildi" "^[0-9A-F]{8}-" ((Get-ItemProperty -Path "HKCU:\Software\CyberWolfSec" -Name lisans -ErrorAction SilentlyContinue).lisans)
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "4f somuru FULL'de ACIK" "root:" $s } catch { Sonuc "4f somuru" "root:" $_.Exception.Message }
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?h=127.0.0.1&yol=/&$T" -TimeoutSec 60
@@ -75,6 +76,22 @@ $P3=PortBul; Write-Host ("PORT3=" + $P3)
 $l4=Invoke-RestMethod "http://127.0.0.1:$P3/api/lisans?$T" -TimeoutSec 30
 Sonuc "5 lisans yeniden acilista gecerli" "FULL" $l4.mod
 Stop-Process -Id $p3.Id -Force -ErrorAction SilentlyContinue
+
+Write-Host "======== 6) KAYIT DEFTERI YEDEGI (dosyalar silinse bile FULL) ========"
+Sonuc "6a kayit defterine yazildi" "^[0-9A-F]{8}-" ((Get-ItemProperty -Path "HKCU:\Software\CyberWolfSec" -Name lisans -ErrorAction SilentlyContinue).lisans)
+Remove-Item -Force "$env:APPDATA\CyberWolfSec\lisans.anahtar" -ErrorAction SilentlyContinue
+Remove-Item -Force .\lisans.anahtar -ErrorAction SilentlyContinue
+Write-Host ("6b dosya silindi | APPDATA var mi: " + (Test-Path "$env:APPDATA\CyberWolfSec\lisans.anahtar") + " | exe yani var mi: " + (Test-Path .\lisans.anahtar))
+Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 5
+$p4=Start-Process .\CWPS.exe -PassThru; Start-Sleep -Seconds 15
+$P4=PortBul
+$l5=Invoke-RestMethod "http://127.0.0.1:$P4/api/lisans?$T" -TimeoutSec 30
+Sonuc "6c dosyasiz da FULL (kayit defteri)" "FULL" $l5.mod
+Sonuc "6d kaynak kayit defteri" "kayit defteri" $l5.lisans_dosya
+try { $z=Invoke-RestMethod "http://127.0.0.1:$P4/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
+      Sonuc "6e somuru calisiyor" "root:" (($z|ConvertTo-Json -Compress -Depth 4)) } catch { Sonuc "6e somuru" "root:" $_.Exception.Message }
+Stop-Process -Id $p4.Id -Force -ErrorAction SilentlyContinue
+Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 Write-Host ("====== SONUC: PASS=" + $OK + " FAIL=" + $HATA + " ======")
 if($HATA -gt 0){ exit 1 }

@@ -1,0 +1,16 @@
+name: deneme
+on: [push, workflow_dispatch]
+jobs:
+  d:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: DENEME SURESI TESTI
+        shell: pwsh
+        run: pwsh -File deneme.ps1
