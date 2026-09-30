@@ -37,9 +37,9 @@ Sonuc "2b surum DEMO"        "DEMO"  $l2.surum
 Sonuc "2c deneme bitti"      "true"  $l2.deneme_bitti
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2d somuru KILITLI" "LISANS GEREKLI" $s } catch { Sonuc "2d somuru" "LISANS GEREKLI" $_.Exception.Message }
-try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?$T" -TimeoutSec 60
+try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?h=127.0.0.1&yol=/&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2e PDF KILITLI" "FULL-SURUMDE" $s } catch { Sonuc "2e PDF" "FULL-SURUMDE" $_.Exception.Message }
-try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/modul?m=rce_komut&h=127.0.0.1&$T" -TimeoutSec 60
+try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/modulcalistir?h=127.0.0.1&modul=rce_komut&yol=/&p=id&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "2f modul KILITLI" "FULL surumde aktif" $s } catch { Sonuc "2f modul" "FULL surumde aktif" $_.Exception.Message }
 
 Write-Host "======== 3) YANLIS ANAHTAR REDDEDILMELI ========"
@@ -62,7 +62,7 @@ Sonuc "4d lisans gecerli" "gecerli" $l3.lisans
 Sonuc "4e lisans.anahtar yazildi" "True" (Test-Path .\lisans.anahtar)
 try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/lfi?h=127.0.0.1&port=19090&yol=/lfi&prm=file&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "4f somuru FULL'de ACIK" "root:" $s } catch { Sonuc "4f somuru" "root:" $_.Exception.Message }
-try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?$T" -TimeoutSec 60
+try { $z=Invoke-RestMethod "http://127.0.0.1:$P1/api/raporpdf?h=127.0.0.1&yol=/&$T" -TimeoutSec 60
       $s=($z|ConvertTo-Json -Compress -Depth 4); Sonuc "4g PDF FULL'de ACIK" "rapor|pdf|ok|dosya" $s } catch { Sonuc "4g PDF" "rapor" $_.Exception.Message }
 
 # ---- 5) yeniden baslat: lisans KALICI mi ----
