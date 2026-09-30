@@ -3,6 +3,17 @@ Start-Process python -ArgumentList "vuln.py" -WindowStyle Hidden
 Start-Sleep -Seconds 5
 $p = Start-Process .\CWPS.exe -PassThru
 Start-Sleep -Seconds 14
+# ---- LISANS OLUSTUR (FULL mod testi) ✓ ----
+function PortBul { foreach ($pt in 48921..48960) { try { Invoke-RestMethod "http://127.0.0.1:$pt/api/durum?t=cwps-yerel-9f3a7d" -TimeoutSec 3 | Out-Null; return $pt } catch {} } return 0 }
+$PF = PortBul
+$li = Invoke-RestMethod "http://127.0.0.1:$PF/api/lisans?t=cwps-yerel-9f3a7d" -TimeoutSec 20
+$kk = (& .\CWPS-Keygen.exe $li.makine | Select-String "URETILEN ANAHTAR") -replace ".*: ",""
+Set-Content -Path "lisans.anahtar" -Value ($li.makine + ":" + $kk.Trim()) -NoNewline -Encoding ascii
+Stop-Process -Id $p.Id -Force; Start-Sleep -Seconds 5
+$p = Start-Process .\CWPS.exe -PassThru
+Start-Sleep -Seconds 14
+$L2 = Invoke-RestMethod "http://127.0.0.1:(PortBul)/api/lisans?t=cwps-yerel-9f3a7d" -TimeoutSec 20
+Write-Host ("MOD=" + $L2.surum)
 $T = "t=cwps-yerel-9f3a7d"
 $liste = @(
  @{u="durum";p=""}, @{u="tani";p=""}, @{u="tara";p="?h=127.0.0.1&p1=1&p2=200&th=64"}, @{u="cve";p="?urun=apache"},
