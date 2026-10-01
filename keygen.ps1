@@ -35,7 +35,9 @@ $p=Start-Process .\CWPS-Keygen.exe -PassThru
 Start-Sleep -Seconds 5
 Sonuc "3a pencere aciliyor (process canli)" "True" (-not $p.HasExited)
 $h=[P]::FindWindow("CWKeygen", $null)
-Write-Host ("     pencere tutamaci: " + $h)
+if($h -eq [IntPtr]::Zero){ $h=[P]::FindWindow($null, "CYBERWOLF SECURITY - LISANS URETICI") }
+if($h -eq [IntPtr]::Zero){ $mh=(Get-Process -Id $p.Id).MainWindowHandle; if($mh -ne 0){ $h=[IntPtr]$mh; Write-Host ("     MainWindowHandle ile bulundu: " + $mh) } }
+Write-Host ("     pencere tutamaci: " + $h + " | MainWindowHandle: " + (Get-Process -Id $p.Id).MainWindowHandle)
 Sonuc "3b pencere var" "True" ($h -ne [IntPtr]::Zero)
 if($h -eq [IntPtr]::Zero){ Write-Host "FAIL gorsel arayuz penceresi olusmadi"; $HATA++; }
 else {
