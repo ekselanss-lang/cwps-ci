@@ -111,7 +111,18 @@ Type: filesandordirs; Name: "{app}\raporlar"
 Type: filesandordirs; Name: "{tmp}\cwps_profil"
 Type: files;          Name: "{tmp}\cwps_ui.html"
 Type: files;          Name: "{tmp}\cwps_basla.log"
-; NOT: lisans.anahtar BILEREK silinmiyor — yeniden kurulumda FULL surum kalsin.
+Type: files;          Name: "{app}\cwps_basla.log"
+Type: filesandordirs; Name: "{app}\listeler"
+Type: files;          Name: "{app}\cwps-test*.txt"
+Type: files;          Name: "{app}\rapor.pdf"
+Type: filesandordirs; Name: "{app}\locale"
+Type: filesandordirs; Name: "{app}\locales"
+Type: filesandordirs; Name: "{app}\nselib"
+Type: filesandordirs; Name: "{app}\scripts"
+Type: files;          Name: "{app}\cw-parolalar.txt"
+; EN SON: klasorun tamami temizlensin (baska uretilmis dosya kalmasin) ✓
+Type: filesandordirs; Name: "{app}"
+; NOT: lisans.anahtar BILEREK silinmiyor (%APPDATA%\CyberWolfSec altinda) — yeniden kurulumda FULL surum kalsin.
 
 [Code]
 function InitializeSetup(): Boolean;
