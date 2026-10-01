@@ -53,18 +53,18 @@ jobs:
             Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
           } catch { Write-Host "nuclei indirilemedi: $_" }
           Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
-      - name: Yerel hedef web sunucusu (port 80)
+      - name: Yerel hedef web sunucusu (port 80 - IIS durdurulur)
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path webhedef | Out-Null
-          Set-Content -Path webhedef\index.html -Value "<html><head><title>CWPS Test</title></head><body><h1>CWPS Test Hedefi</h1><a href='/admin'>Admin</a><form action='/login' method='post'><input name='username'><input type='password' name='password'><button>Giris</button></form></body></html>"
-          Set-Content -Path webhedef\admin.html -Value "<html><body>Yonetim Girisi<form action='/admin' method='post'><input name='kullanici'><input name='sifre' type='password'></form></body></html>"
-          Copy-Item webhedef\admin.html webhedef\admin -Force
-          Copy-Item webhedef\index.html webhedef\login -Force
-          Set-Content -Path webhedef\robots.txt -Value "User-agent: *`nDisallow: /admin"
-          Start-Process python -ArgumentList "-m","http.server","80","--directory","webhedef" -WindowStyle Hidden
-          Start-Sleep -Seconds 4
-          try { $r = Invoke-WebRequest "http://127.0.0.1/" -UseBasicParsing -TimeoutSec 10; Write-Host ("YEREL WEB SUNUCU: HTTP " + $r.StatusCode) } catch { Write-Host ("YEREL WEB SUNUCU HATASI: " + $_) }
+          try { iisreset /stop | Out-Null; Write-Host "IIS DURDURULDU (port 80 bosa cikti)" } catch { Write-Host "iisreset atlandi" }
+          Start-Sleep -Seconds 3
+          Start-Process python -ArgumentList "testsunucu.py","80" -WindowStyle Hidden
+          Start-Sleep -Seconds 5
+          $r = Invoke-WebRequest "http://127.0.0.1/" -UseBasicParsing -TimeoutSec 10
+          if($r.Content -match "CWPS-TEST-MARKER"){ Write-Host ("PASS  test sunucumuz port 80'de (HTTP " + $r.StatusCode + ")") }
+          else { Write-Host "FAIL  port 80'de baska sunucu var - web testleri gecersiz"; exit 1 }
+          $k = Invoke-WebRequest "http://127.0.0.1/admin" -UseBasicParsing -TimeoutSec 10
+          Write-Host ("      /admin -> HTTP " + $k.StatusCode)
       - name: CWPS.exe baslat (islemlerin kullandigi klasor)
         shell: pwsh
         run: |

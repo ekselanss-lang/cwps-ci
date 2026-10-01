@@ -39,7 +39,7 @@ $moduller = @(
   @("redis_eris","127.0.0.1","/"), @("mongo_eris","127.0.0.1","/"), @("elastic_eris","127.0.0.1","/"),
   @("ftp_anon","127.0.0.1","/"), @("rdp_bluekeep","127.0.0.1","/"),
   @("port_tara","127.0.0.1","/"), @("servis_parmak","127.0.0.1","/"), @("cve_esle","127.0.0.1","/"),
-  @("altalan_tara","example.com","/"),
+  @("altalan_tara","cyberwolfsec.com","/"),
   @("yuk_exe","127.0.0.1","/"), @("yuk_ps1","127.0.0.1","/"), @("yuk_php","127.0.0.1","/"),
   @("yuk_asp","127.0.0.1","/"), @("yuk_elf","127.0.0.1","/"), @("yuk_py","127.0.0.1","/"), @("yuk_jsp","127.0.0.1","/"),
   @("dinleyici_ters","127.0.0.1","/")
@@ -62,9 +62,10 @@ Write-Host ""
 Write-Host "======== 3) GOMULU ARACLAR (9) ========"
 $araclar=@("nmap","ffuf","gobuster","subfinder","httpx","naabu","katana","dnsx","nuclei")
 foreach($a in $araclar){
-  $hedef = if($a -eq "nmap" -or $a -eq "naabu") { "127.0.0.1" } elseif($a -eq "subfinder" -or $a -eq "dnsx") { "example.com" } else { "127.0.0.1" }
+  $hedef = if($a -eq "nmap" -or $a -eq "naabu") { "127.0.0.1" } elseif($a -eq "subfinder" -or $a -eq "dnsx") { "cyberwolfsec.com" } else { "127.0.0.1" }
   $t0=Get-Date
-  $r = Api ("harici?arac=" + $a + "&h=" + $hedef) 180000
+  $ms = if($a -eq "nuclei"){ 420000 } else { 180000 }
+  $r = Api ("harici?arac=" + $a + "&h=" + $hedef) $ms
   $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
   $s = if($r){ ($r | ConvertTo-Json -Compress -Depth 4) } else { "" }
   $boyut = if($r){ [int]$r.boyut } else { -1 }
@@ -72,7 +73,7 @@ foreach($a in $araclar){
   if(-not $r){ $durum="YANIT YOK" }
   elseif($s -match 'arac bulunamadi'){ $durum="ARAC YOK" }
   elseif($s -match '"hata"'){ $durum="HATA" }
-  elseif($boyut -le 0){ $durum="CIKTI YOK" }
+  elseif($boyut -le 0){ $durum="CIKTI YOK (bulgu yok)" }
   if($durum -eq "OK"){ $OK++ } else { $HATA++ }
   Write-Host ("{0,-11} {1,-10} {2,6}sn  boyut={3}  {4}" -f $durum,$a,$sure,$boyut,$s.Substring(0,[Math]::Min(140,$s.Length)))
 }
