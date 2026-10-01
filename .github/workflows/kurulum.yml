@@ -55,6 +55,14 @@ jobs:
           Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
           Expand-Archive nmap.zip -DestinationPath t_nmap -Force
           Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
+          try {
+            $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
+            $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+            Invoke-WebRequest $na.browser_download_url -OutFile nuclei.zip -UseBasicParsing
+            Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+            Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+            Write-Host "nuclei.exe paketlendi"
+          } catch { Write-Host ("nuclei indirilemedi: " + $_) }
           Write-Host "=== ARAÇLAR ==="
           Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: KURULUM DERLE (musteri)
