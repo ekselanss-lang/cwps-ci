@@ -43,7 +43,7 @@ $l=Lisans; Sonuc "4a gelecek tarih DENEME" "DENEME" $l.mod
 Sonuc "4b kalan 15" "15" $l.deneme_kalan
 
 Write-Host "======== 5) DOSYA 8 GUN ONCE -> 7 GUN KALMALI ========"
-Set-Content -Path (TF) -Value ((Simdi) - (8*86400)) -NoNewline -Encoding ascii
+Set-Content -Path (TF) -Value ((Simdi) - (8*86400) - 3600) -NoNewline -Encoding ascii
 RegSil
 $l=Lisans; Sonuc "5a DENEME" "DENEME" $l.mod
 Sonuc "5b kalan 7" "7" $l.deneme_kalan
