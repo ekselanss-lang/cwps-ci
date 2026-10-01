@@ -67,6 +67,23 @@ jobs:
         run: |
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DSATICI /OOutputSatici CWPS.iss | Select-Object -Last 8
           Get-ChildItem OutputSatici | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: SUNUCUYA YUKLE (kurulum paketleri - oracle'a degil)
+        if: always()
+        env:
+          SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
+          SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
+          SUNUCU_PORT: ${{ secrets.SUNUCU_PORT }}
+          SUNUCU_KULLANICI: ${{ secrets.SUNUCU_KULLANICI }}
+        run: |
+          H="${SUNUCU_HOST:-96.47.167.18}"; P="${SUNUCU_PORT:-1588}"; U="${SUNUCU_KULLANICI:-script42}"
+          if [ -z "$SUNUCU_KEY" ]; then echo "SUNUCU_KEY yok - atlandi"; exit 0; fi
+          mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
+          ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ls -la Output OutputSatici 2>/dev/null || true
+          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no Output/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
+          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no OutputSatici/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
+          ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
+
       - name: GERCEK KURULUM TESTI (sessiz kur + dosya kontrol)
         shell: pwsh
         run: |
@@ -120,6 +137,7 @@ jobs:
             $lg="$env:TEMP\kur-$ad.log"; if(Test-Path $lg){ Write-Host "--- INNO LOG SON 6 SATIR ---"; Get-Content $lg -Tail 6 }
             return $true
           }
+          if(Test-Path "C:\CWPS-TEST\unins000.exe"){ Write-Host "Once musteri kurulumu kaldiriliyor (AppId cakismasi olmasin)"; Start-Process "C:\CWPS-TEST\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru | Wait-Process -Timeout 300 -ErrorAction SilentlyContinue; Start-Sleep -Seconds 5 }
           $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
           $null = Kur $s "satici" "C:\KW-TEST" 900
           Start-Sleep -Seconds 2
@@ -141,19 +159,13 @@ jobs:
           Start-Sleep -Seconds 5
           if(Test-Path "C:\KW-TEST\CWPS.exe"){ Write-Host "FAIL  kaldirma sonrasi exe duruyor" } else { Write-Host "PASS  kaldirma calisti (exe silindi)" }
           if(Test-Path "C:\KW-TEST"){ Write-Host ("KALAN DOSYALAR: " + ((Get-ChildItem "C:\KW-TEST" -Force | Select-Object -ExpandProperty Name) -join ", ")) } else { Write-Host "PASS  klasor tamamen silindi" }
-      - name: SUNUCUYA YUKLE (kurulum paketleri - oracle'a degil)
+
+      - name: PAKETLERI ARTIFACT OLARAK YUKLE
         if: always()
-        env:
-          SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
-          SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
-          SUNUCU_PORT: ${{ secrets.SUNUCU_PORT }}
-          SUNUCU_KULLANICI: ${{ secrets.SUNUCU_KULLANICI }}
-        run: |
-          H="${SUNUCU_HOST:-96.47.167.18}"; P="${SUNUCU_PORT:-1588}"; U="${SUNUCU_KULLANICI:-script42}"
-          if [ -z "$SUNUCU_KEY" ]; then echo "SUNUCU_KEY yok - atlandi"; exit 0; fi
-          mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
-          ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
-          ls -la Output OutputSatici 2>/dev/null || true
-          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no Output/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
-          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no OutputSatici/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
-          ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cwps-kurulum-paketleri
+          path: |
+            Output/*.exe
+            OutputSatici/*.exe
+          if-no-files-found: warn
