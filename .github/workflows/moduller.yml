@@ -1,0 +1,82 @@
+name: moduller
+on: [push, workflow_dispatch]
+jobs:
+  m:
+    runs-on: windows-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kaynagi coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: Gomulu araclari indir (9 arac)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path araclar | Out-Null
+          foreach ($r in @("subfinder","httpx","naabu","katana","dnsx")) {
+            $rel = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/$r/releases/latest"
+            $a = $rel.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+            Invoke-WebRequest $a.browser_download_url -OutFile "$r.zip" -UseBasicParsing
+            Expand-Archive "$r.zip" -DestinationPath "t_$r" -Force
+            $exe = Get-ChildItem "t_$r" -Recurse -Filter "$r.exe" | Select-Object -First 1
+            Copy-Item $exe.FullName "araclar\$r.exe" -Force
+          }
+          Invoke-WebRequest "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_windows_amd64.zip" -OutFile ffuf.zip -UseBasicParsing
+          Expand-Archive ffuf.zip -DestinationPath t_ffuf -Force
+          Copy-Item (Get-ChildItem t_ffuf -Recurse -Filter ffuf.exe | Select-Object -First 1).FullName "araclar\ffuf.exe" -Force
+          Invoke-WebRequest "https://github.com/OJ/gobuster/releases/download/v3.6.0/gobuster_Windows_x86_64.zip" -OutFile gb.zip -UseBasicParsing
+          Expand-Archive gb.zip -DestinationPath t_gb -Force
+          Copy-Item (Get-ChildItem t_gb -Recurse -Filter gobuster.exe | Select-Object -First 1).FullName "araclar\gobuster.exe" -Force
+          Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
+          Expand-Archive nmap.zip -DestinationPath t_nmap -Force
+          Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
+          try {
+            $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
+            $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+            Invoke-WebRequest $na.browser_download_url -OutFile nuclei.zip -UseBasicParsing
+            Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+            Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+          } catch { Write-Host "nuclei indirilemedi: $_" }
+          Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: Yerel hedef web sunucusu (port 80)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path webhedef | Out-Null
+          Set-Content -Path webhedef\index.html -Value "<html><head><title>CWPS Test</title></head><body><h1>CWPS Test Hedefi</h1><a href='/admin'>Admin</a><form action='/login' method='post'><input name='username'><input type='password' name='password'><button>Giris</button></form></body></html>"
+          Set-Content -Path webhedef\admin.html -Value "<html><body>Yonetim Girisi<form action='/admin' method='post'><input name='kullanici'><input name='sifre' type='password'></form></body></html>"
+          Copy-Item webhedef\admin.html webhedef\admin -Force
+          Copy-Item webhedef\index.html webhedef\login -Force
+          Set-Content -Path webhedef\robots.txt -Value "User-agent: *`nDisallow: /admin"
+          Start-Process python -ArgumentList "-m","http.server","80","--directory","webhedef" -WindowStyle Hidden
+          Start-Sleep -Seconds 4
+          try { $r = Invoke-WebRequest "http://127.0.0.1/" -UseBasicParsing -TimeoutSec 10; Write-Host ("YEREL WEB SUNUCU: HTTP " + $r.StatusCode) } catch { Write-Host ("YEREL WEB SUNUCU HATASI: " + $_) }
+      - name: CWPS.exe baslat (islemlerin kullandigi klasor)
+        shell: pwsh
+        run: |
+          $p = Start-Process .\CWPS.exe -PassThru
+          Write-Host ("CWPS PID: " + $p.Id)
+          Start-Sleep -Seconds 15
+          Get-Process CWPS -ErrorAction SilentlyContinue | Select-Object Id,ProcessName | Format-Table -AutoSize | Out-String
+          Get-ChildItem listeler -ErrorAction SilentlyContinue | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: TUM MODULLER + ARACLAR + DURDUR TESTI
+        shell: pwsh
+        run: pwsh -File moduller.ps1
+      - name: Motor gunlugu (kanit)
+        if: always()
+        shell: pwsh
+        run: |
+          $lg = "$env:APPDATA\CyberWolfSec"
+          if(Test-Path $lg){ Get-ChildItem $lg | Select-Object Name,Length | Format-Table -AutoSize | Out-String }
+          Get-Process CWPS -ErrorAction SilentlyContinue | Select-Object Id,ProcessName | Format-Table -AutoSize | Out-String
+      - name: Sonuclari yukle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moduller-sonuc
+          path: |
+            moduller-sonuc.json
+            listeler/*.txt
+          if-no-files-found: warn
