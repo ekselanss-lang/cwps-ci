@@ -103,6 +103,11 @@ Filename: "{app}\CWPS.exe"; Description: "CYBERWOLF SECURITY'i şimdi başlat"; 
 Filename: "{app}\OKU-BENI.txt"; Description: "Kullanım kılavuzunu aç"; Flags: shellexec postinstall unchecked skipifsilent
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Add-MpPreference -ExclusionPath '{app}' -ErrorAction Stop; Write-Host 'Defender istisnasi eklendi' }} catch {{ Write-Host 'Defender istisnasi eklenemedi (yonetici gerekli)' }}"""; StatusMsg: "Windows Defender istisnası ekleniyor..."; Flags: runhidden; Tasks: duvar
 
+[UninstallRun]
+; Kaldirmadan ONCE calisan program zorla kapatilir (dosya kilitli kalmasin) ✓
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS.exe /T";        Flags: runhidden; RunOnceId: "cwpsKapat"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS-Keygen.exe /T"; Flags: runhidden; RunOnceId: "keygenKapat"
+
 [UninstallDelete]
 ; Programin CALISIRKEN urettigi dosyalar (kurulumda yoktu) — kaldirmada temizlensin
 Type: filesandordirs; Name: "{app}\payloadlar"
