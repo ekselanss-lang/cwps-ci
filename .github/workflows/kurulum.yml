@@ -129,3 +129,19 @@ jobs:
           path: |
             Output/*.exe
             OutputSatici/*.exe
+      - name: SUNUCUYA YUKLE (kurulum paketleri - oracle'a degil)
+        if: always()
+        env:
+          SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
+          SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
+          SUNUCU_PORT: ${{ secrets.SUNUCU_PORT }}
+          SUNUCU_KULLANICI: ${{ secrets.SUNUCU_KULLANICI }}
+        run: |
+          H="${SUNUCU_HOST:-96.47.167.18}"; P="${SUNUCU_PORT:-1588}"; U="${SUNUCU_KULLANICI:-script42}"
+          if [ -z "$SUNUCU_KEY" ]; then echo "SUNUCU_KEY yok - atlandi"; exit 0; fi
+          mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
+          ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ls -la Output OutputSatici 2>/dev/null || true
+          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no Output/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
+          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no OutputSatici/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
+          ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
