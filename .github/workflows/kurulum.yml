@@ -113,8 +113,24 @@ jobs:
           mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
           ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
           ls -la Output OutputSatici 2>/dev/null || true
-          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no Output/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
-          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no OutputSatici/*.exe "$U@$H:~/public_html/indir/" 2>&1 | tail -2
+          # GUVENLI YUKLEME: once .yeni olarak at, sha256 dogrula, sonra yerine koy ✓
+          # (yarim kalan yukleme = bozuk kurulum dosyasi / "setup files are corrupted" sorunu)
+          for f in Output/*.exe OutputSatici/*.exe; do
+            [ -f "$f" ] || continue
+            b=$(basename "$f")
+            if ! scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no "$f" "$U@$H:~/public_html/indir/$b.yeni"; then
+              echo "HATA  $b yuklenemedi (mevcut dosya korundu)"; continue
+            fi
+            L=$(sha256sum "$f" | cut -d" " -f1)
+            R=$(ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "sha256sum ~/public_html/indir/$b.yeni 2>/dev/null | cut -d\" \" -f1")
+            if [ "$L" = "$R" ]; then
+              ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "mv -f ~/public_html/indir/$b.yeni ~/public_html/indir/$b"
+              echo "TAMAM $b  (boyut $(stat -c%s \"$f\") B, sha ${L:0:16}...)  DOGRULANDI ✓"
+            else
+              echo "HATA  $b sha256 UYUSMUYOR - yuklenmedi (yerel ${L:0:16} / sunucu ${R:0:16})"
+              ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "rm -f ~/public_html/indir/$b.yeni"
+            fi
+          done
           ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
 
       - name: GERCEK KURULUM TESTI (sessiz kur + dosya kontrol)
