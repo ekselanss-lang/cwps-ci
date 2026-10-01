@@ -48,13 +48,15 @@ else {
   Sonuc "3e sonuc kutusu var" "True" ($sonuc -ne [IntPtr]::Zero)
 
   Write-Host "======== 4) KUTUYA YAZ + BUTONA BAS ========"
+  Remove-Item -Force "$env:TEMP\cwps_lisans_son.txt" -ErrorAction SilentlyContinue
   [void][P]::SendMessage($giris, 0x000C, [IntPtr]::Zero, "FF0FAD7B-7C1436DF")   # WM_SETTEXT
   Start-Sleep -Milliseconds 300
-  Sonuc "4a kutuya yazildi" "FF0FAD7B-7C1436DF" ([P]::Metin($giris))
   [void][P]::SendMessage($h, 0x0111, [IntPtr]102, [IntPtr]::Zero)               # WM_COMMAND ID_URET
-  Start-Sleep -Milliseconds 800
-  $uretilen=[P]::Metin($sonuc)
-  Sonuc "4b GUI ANAHTAR URETTI" "^MPAT9-2W2GC-M4Y4K-ZT5HB$" $uretilen
+  Start-Sleep -Milliseconds 900
+  $dosya="$env:TEMP\cwps_lisans_son.txt"
+  $ic = if(Test-Path $dosya){ (Get-Content $dosya -Raw).Trim() } else { "DOSYA YOK" }
+  Write-Host ("     keygen dosyasi: " + $ic)
+  Sonuc "4b GUI ANAHTAR URETTI (dosyaya yazdi)" "^FF0FAD7B-7C1436DF:MPAT9-2W2GC-M4Y4K-ZT5HB$" $ic
   Write-Host ("     durum satiri: " + [P]::Metin($durum))
 
   Write-Host "======== 5) BOS KOD UYARISI ========"
@@ -64,10 +66,12 @@ else {
   Sonuc "5a bos kod uyarisi" "Once musteri makine kodunu girin" ([P]::Metin($durum))
 
   Write-Host "======== 6) BOZUK KOD UYARISI ========"
+  Remove-Item -Force "$env:TEMP\cwps_lisans_son.txt" -ErrorAction SilentlyContinue
   [void][P]::SendMessage($giris, 0x000C, [IntPtr]::Zero, "ABC")
   [void][P]::SendMessage($h, 0x0111, [IntPtr]102, [IntPtr]::Zero)
-  Start-Sleep -Milliseconds 500
-  Sonuc "6a bozuk kod uyarisi" "bicimi" ([P]::Metin($durum))
+  Start-Sleep -Milliseconds 600
+  Sonuc "6a bozuk kod UYARI veriyor" "bicimi hatali" ([P]::Metin($durum))
+  Sonuc "6b bozuk koddan anahtar URETILMEDI" "False" (Test-Path "$env:TEMP\cwps_lisans_son.txt")
   Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
 }
 
