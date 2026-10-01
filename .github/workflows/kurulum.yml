@@ -92,6 +92,17 @@ jobs:
           Stop-Process -Id $pr.Id -Force -ErrorAction SilentlyContinue
           Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           Write-Host ("=== KURULUM TESTI: PASS=" + $ok + " FAIL=" + $hata + " ===")
+      - name: SATICI KURULUM TESTI (keygen kuruluyor mu)
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
+          Write-Host ("SATICI PAKETI: " + $setup.Name + "  " + [Math]::Round($setup.Length/1MB,1) + " MB")
+          Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=C:\KW-TEST" -Wait
+          Start-Sleep -Seconds 3
+          if(Test-Path "C:\KW-TEST\CWPS-Keygen.exe"){ Write-Host ("PASS  satici kurulumunda CWPS-Keygen.exe var -> " + [Math]::Round((Get-Item "C:\KW-TEST\CWPS-Keygen.exe").Length/1KB,0) + " KB") }
+          else { Write-Host "FAIL  satici kurulumunda keygen YOK"; }
+          if(Test-Path "C:\KW-TEST\CWPS.exe"){ Write-Host "PASS  satici kurulumunda CWPS.exe var" } else { Write-Host "FAIL  CWPS.exe yok" }
+          if(Test-Path "C:\KW-TEST\unins000.exe"){ Start-Process "C:\KW-TEST\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait }
       - name: GERCEK KALDIRMA TESTI
         shell: pwsh
         run: |
