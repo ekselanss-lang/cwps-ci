@@ -45,6 +45,12 @@ jobs:
           Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
           Expand-Archive nmap.zip -DestinationPath t_nmap -Force
           Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
+          # ONCE KENDI SUNUCUMUZDAN (hizli + guvenilir), olmazsa GitHub'dan ✓
+          try {
+            Invoke-WebRequest "https://script.cyberwolfsec.com/indir/araclar/nuclei.exe" -OutFile "araclar\nuclei.exe" -UseBasicParsing
+            Write-Host "nuclei kendi sunucumuzdan alindi"
+          } catch { Write-Host ("kendi sunucudan alinamadi: " + $_) }
+          if (-not (Test-Path "araclar\nuclei.exe")) {
           try {
             $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
             $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
@@ -52,6 +58,7 @@ jobs:
             Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
             Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
           } catch { Write-Host "nuclei indirilemedi: $_" }
+          }
           Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: Yerel hedef web sunucusu (port 80 - IIS durdurulur)
         shell: pwsh
