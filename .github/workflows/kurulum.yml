@@ -55,14 +55,32 @@ jobs:
           Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
           Expand-Archive nmap.zip -DestinationPath t_nmap -Force
           Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
-          try {
-            $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
-            $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
-            Invoke-WebRequest $na.browser_download_url -OutFile nuclei.zip -UseBasicParsing
-            Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
-            Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
-            Write-Host "nuclei.exe paketlendi"
-          } catch { Write-Host ("nuclei indirilemedi: " + $_) }
+          $ok=$false
+          foreach ($v in @("v3.4.10","v3.3.9","v3.3.7","v3.2.9")) {
+            if ($ok) { break }
+            try {
+              $s = $v.TrimStart("v")
+              Invoke-WebRequest "https://github.com/projectdiscovery/nuclei/releases/download/$v/nuclei_$s`_windows_amd64.zip" -OutFile nuclei.zip -UseBasicParsing
+              Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+              Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+              $ok = Test-Path "araclar\nuclei.exe"
+              if ($ok) { Write-Host "nuclei paketlendi ($v)" }
+            } catch { Write-Host ("nuclei $v indirilemedi") }
+          }
+          if (-not $ok) {
+            try {
+              $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
+              $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+              Invoke-WebRequest $na.browser_download_url -OutFile nuclei.zip -UseBasicParsing
+              Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+              Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+            } catch { Write-Host ("nuclei API indirilemedi: " + $_) }
+          }
+          # ZORUNLU KONTROL: 9 aracin hepsi pakete girmeli, eksikse derleme DURUR ✗
+          $bekle=@("nmap","ffuf","gobuster","nuclei","subfinder","httpx","naabu","katana","dnsx")
+          $eksik=@(); foreach($b in $bekle){ if(-not (Test-Path "araclar\$b.exe")){ $eksik += $b } }
+          if($eksik.Count -gt 0){ Write-Host ("EKSIK ARACLAR: " + ($eksik -join ", ")); exit 1 }
+          Write-Host ("TAM " + $bekle.Count + " ARAC HAZIR: " + ($bekle -join ", "))
           Write-Host "=== ARAÇLAR ==="
           Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: KURULUM DERLE (musteri)
@@ -109,6 +127,13 @@ jobs:
           Kontrol "OKU-BENI.txt"        "C:\CWPS-TEST\OKU-BENI.txt"
           Kontrol "LISANS.txt"          "C:\CWPS-TEST\LISANS.txt"
           Kontrol "araclar\nmap.exe"    "C:\CWPS-TEST\araclar\nmap.exe"
+          Kontrol "araclar\dnsx.exe"    "C:\CWPS-TEST\araclar\dnsx.exe"
+          Kontrol "araclar\katana.exe"    "C:\CWPS-TEST\araclar\katana.exe"
+          Kontrol "araclar\naabu.exe"    "C:\CWPS-TEST\araclar\naabu.exe"
+          Kontrol "araclar\httpx.exe"    "C:\CWPS-TEST\araclar\httpx.exe"
+          Kontrol "araclar\subfinder.exe"    "C:\CWPS-TEST\araclar\subfinder.exe"
+          Kontrol "araclar\nuclei.exe"    "C:\CWPS-TEST\araclar\nuclei.exe"
+          Kontrol "araclar\gobuster.exe"    "C:\CWPS-TEST\araclar\gobuster.exe"
           Kontrol "araclar\ffuf.exe"    "C:\CWPS-TEST\araclar\ffuf.exe"
           Kontrol "araclar\subfinder.exe" "C:\CWPS-TEST\araclar\subfinder.exe"
           Kontrol "araclar\httpx.exe"   "C:\CWPS-TEST\araclar\httpx.exe"
