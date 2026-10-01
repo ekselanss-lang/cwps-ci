@@ -69,6 +69,7 @@ jobs:
           Get-ChildItem OutputSatici | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: SUNUCUYA YUKLE (kurulum paketleri - oracle'a degil)
         if: always()
+        shell: bash
         env:
           SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
           SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
