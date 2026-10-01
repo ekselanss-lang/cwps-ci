@@ -1,0 +1,73 @@
+name: derle
+on:
+  push:
+    paths:
+      - 'dis.cpp'
+      - 'motor.cpp'
+      - 'keygen_gui.cpp'
+      - 'wordlist_data.h'
+      - '.github/workflows/derle.yml'
+  workflow_dispatch:
+
+jobs:
+  derle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kaynagi coz (sifreli paket)
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k "${{ secrets.PAKET_SIFRE }}"
+          tar -xzf k.tar.gz
+          ls -la
+
+      - name: Derleyici kur (mingw-w64)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mingw-w64 zip
+
+      - name: CWPS.exe DERLE (github sunucusunda - oracle degil)
+        run: |
+          x86_64-w64-mingw32-g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ \
+            -DWIN32_LEAN_AND_MEAN -o CWPS.exe dis.cpp motor.cpp \
+            -lws2_32 -ladvapi32 -lcrypt32 -lole32 -luuid -lshell32 -liphlpapi -lwininet -lcomctl32 -lgdi32
+          ls -la CWPS.exe
+
+      - name: CWPS-Keygen.exe DERLE
+        run: |
+          x86_64-w64-mingw32-g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ \
+            -DWIN32_LEAN_AND_MEAN -o CWPS-Keygen.exe keygen_gui.cpp \
+            -lcomctl32 -lgdi32 -lcomdlg32 -luser32
+          ls -la CWPS-Keygen.exe
+
+      - name: PAKET OLUSTUR (program + keygen + belgeler)
+        run: |
+          mkdir -p paket
+          cp CWPS.exe CWPS-Keygen.exe paket/
+          cp OKU-BENI.txt LISANS.txt paket/ 2>/dev/null || true
+          cd paket && zip -r -q ../CWPS-9.9-son.zip . && cd ..
+          ls -la CWPS-9.9-son.zip
+
+      - name: SUNUCUYA YUKLE (kendi siteme - oracle'a degil)
+        env:
+          SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
+          SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
+          SUNUCU_PORT: ${{ secrets.SUNUCU_PORT }}
+          SUNUCU_KULLANICI: ${{ secrets.SUNUCU_KULLANICI }}
+        run: |
+          H="${SUNUCU_HOST:-96.47.167.18}"; P="${SUNUCU_PORT:-1588}"; U="${SUNUCU_KULLANICI:-script42}"
+          if [ -z "$SUNUCU_KEY" ]; then echo "SUNUCU_KEY tanimli degil - yukleme atlandi"; exit 0; fi
+          mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
+          ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
+          scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no CWPS.exe CWPS-Keygen.exe CWPS-9.9-son.zip "$U@$H:~/public_html/indir/"
+          ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
+
+      - name: Exe'leri artifact olarak yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: cwps-derleme
+          path: |
+            CWPS.exe
+            CWPS-Keygen.exe
+            CWPS-9.9-son.zip
