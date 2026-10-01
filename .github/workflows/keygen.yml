@@ -11,6 +11,18 @@ jobs:
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
           tar -xzf k.tar.gz
           Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: MSYS2 + mingw kur (github sunucusu)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          install: mingw-w64-x86_64-gcc
+      - name: CWPS.exe + Keygen DERLE (github windows - oracle degil)
+        shell: msys2 {0}
+        run: |
+          g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS.exe dis.cpp motor.cpp -lws2_32 -ladvapi32 -lcrypt32 -lole32 -luuid -lshell32 -liphlpapi -lwininet -lcomctl32 -lgdi32
+          g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS-Keygen.exe keygen_gui.cpp -lcomctl32 -lgdi32 -lcomdlg32 -luser32
+          ls -la CWPS.exe CWPS-Keygen.exe
       - name: ANAHTAR URETICI TESTI (CLI + GUI)
         shell: pwsh
         run: pwsh -File keygen.ps1
