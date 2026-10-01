@@ -2,10 +2,7 @@ name: derle
 on:
   push:
     paths:
-      - 'dis.cpp'
-      - 'motor.cpp'
-      - 'keygen_gui.cpp'
-      - 'wordlist_data.h'
+      - 'kaynak.enc'
       - '.github/workflows/derle.yml'
   workflow_dispatch:
 
