@@ -47,7 +47,7 @@ $moduller = @(
 foreach($md in $moduller){
   $ad=$md[0]; $h=$md[1]; $yy=$md[2]
   $t0=Get-Date
-  $r = Api ("modulcalistir?modul=" + $ad + "&h=" + $h + "&yol=" + $yy + "&p=id") 60000
+  $r = Api ("modulcalistir?modul=" + $ad + "&h=" + $h + "&yol=" + $yy + "&p=id") 120000
   $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
   $s = if($r){ ($r | ConvertTo-Json -Compress -Depth 4) } else { "" }
   $durum="OK"; $renk=""
