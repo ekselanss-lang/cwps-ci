@@ -3,7 +3,7 @@ on: [push, workflow_dispatch]
 jobs:
   m:
     runs-on: windows-latest
-    timeout-minutes: 55
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Kaynagi coz
