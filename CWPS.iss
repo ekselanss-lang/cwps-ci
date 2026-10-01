@@ -65,7 +65,8 @@ Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "masaustu"; Description: "Masaüstü kısayolu oluştur"; GroupDescription: "Kısayollar:"; Flags: checkedonce
+Name: "baslatmenu"; Description: "Başlat menüsüne ekle";           GroupDescription: "Kısayollar:"; Flags: checkedonce
+Name: "masaustu";   Description: "Masaüstüne ekle";                 GroupDescription: "Kısayollar:"; Flags: checkedonce
 Name: "duvar";    Description: "Windows Defender'a program klasörünü istisna ekle (yanlış alarmı önler — yönetici gerekir)"; GroupDescription: "Güvenlik:"; Flags: unchecked
 
 [Dirs]
@@ -88,7 +89,7 @@ Source: "CWPS-Keygen.exe";     DestDir: "{app}"; Flags: ignoreversion
 #endif
 
 [Icons]
-Name: "{autoprograms}\CYBERWOLF SECURITY";                  Filename: "{app}\CWPS.exe"; WorkingDir: "{app}"
+Name: "{autoprograms}\CYBERWOLF SECURITY";                  Filename: "{app}\CWPS.exe"; WorkingDir: "{app}"; Tasks: baslatmenu
 Name: "{autoprograms}\Kaldır (Uninstall)";                  Filename: "{uninstallexe}"
 Name: "{autodesktop}\CYBERWOLF SECURITY";                   Filename: "{app}\CWPS.exe"; WorkingDir: "{app}"; Tasks: masaustu
 
