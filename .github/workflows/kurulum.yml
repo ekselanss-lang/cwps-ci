@@ -55,7 +55,13 @@ jobs:
           Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
           Expand-Archive nmap.zip -DestinationPath t_nmap -Force
           Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
-          $ok=$false
+                    # ONCE KENDI SUNUCUMUZDAN (hizli + guvenilir), olmazsa GitHub'dan ✓
+          try {
+            Invoke-WebRequest "https://script.cyberwolfsec.com/indir/araclar/nuclei.exe" -OutFile "araclar\nuclei.exe" -UseBasicParsing
+            Write-Host "nuclei kendi sunucumuzdan alindi"
+          } catch { Write-Host ("kendi sunucudan alinamadi: " + $_) }
+          $ok = Test-Path "araclar\nuclei.exe"
+$ok=$false
           foreach ($v in @("v3.4.10","v3.3.9","v3.3.7","v3.2.9")) {
             if ($ok) { break }
             try {
