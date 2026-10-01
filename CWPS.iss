@@ -135,15 +135,27 @@ begin
   Result := True;
 end;
 
+// KURULUMDAN ONCE calisan program zorla kapatilir (dosya kilitli kalip kurulum TAKILMASIN) ✓
+var KapatSonuc: Integer;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM CWPS.exe /T', '', SW_HIDE, ewWaitUntilTerminated, KapatSonuc);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM CWPS-Keygen.exe /T', '', SW_HIDE, ewWaitUntilTerminated, KapatSonuc);
+  Sleep(800);
+  Result := '';
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    // Anahtar uretici SADECE satici surumunde ve sadece bilgi amaciyla
-    #ifdef SATICI
-    MsgBox('SATICI SÜRÜMÜ kuruldu.' + #13#10 + #13#10 +
-           'CWPS-Keygen.exe = lisans anahtar üretici (müşteriye VERMEYİN).' + #13#10 +
-           'Müşteri sürümü için: iscc CWPS.iss', mbInformation, MB_OK);
-    #endif
+    // NOT: Burada MsgBox KULLANILMAZ — sessiz kurulumda ekran bekleyip kurulumu kilitliyordu ✗
+    // Satici bilgisi OKU-BENI.txt ve 3-KEYGEN/OKU-BENI-KEYGEN.txt icinde yazili ✓
   end;
 end;

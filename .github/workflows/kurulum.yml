@@ -178,14 +178,20 @@ jobs:
             return $true
           }
           if(Test-Path "C:\CWPS-TEST\unins000.exe"){ Write-Host "Once musteri kurulumu kaldiriliyor (AppId cakismasi olmasin)"; Start-Process "C:\CWPS-TEST\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru | Wait-Process -Timeout 300 -ErrorAction SilentlyContinue; Start-Sleep -Seconds 5 }
+          # SATICI oncesi: calisan programlari kapat (acik program kurulumu kilitliyordu) ✓
+          taskkill /F /IM CWPS.exe 2>$null | Out-Null
+          taskkill /F /IM CWPS-Keygen.exe 2>$null | Out-Null
+          Start-Sleep -Seconds 3
           $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
-          $null = Kur $s "satici" "C:\KW-TEST" 900
+          $k1 = Kur $s "satici" "C:\KW-TEST" 900
           Start-Sleep -Seconds 2
           $ok=0; $hata=0
+          if(-not $k1){ Write-Host "FAIL  satici kurulumu TAMAMLANMADI (takildi)"; $hata++ }
           if(Test-Path "C:\KW-TEST\CWPS-Keygen.exe"){ Write-Host ("PASS  satici kurulumunda CWPS-Keygen.exe VAR -> " + [Math]::Round((Get-Item "C:\KW-TEST\CWPS-Keygen.exe").Length/1KB,0) + " KB"); $ok++ } else { Write-Host "FAIL  satici kurulumunda keygen YOK"; $hata++ }
           if(Test-Path "C:\KW-TEST\CWPS.exe"){ Write-Host "PASS  satici kurulumunda CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
           if(Test-Path "C:\KW-TEST\araclar"){ Write-Host ("PASS  araclar klasoru kuruldu (" + (Get-ChildItem "C:\KW-TEST\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "UYARI araclar klasoru yok"; }
           Write-Host ("SATICI TEST SONUC: PASS=" + $ok + " HATA=" + $hata)
+          if($hata -gt 0){ exit 1 }
       - name: GERCEK KALDIRMA TESTI (sure sinirli)
         shell: pwsh
         run: |
