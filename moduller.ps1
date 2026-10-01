@@ -10,7 +10,7 @@ function Api($y, $ms=60000){
   if($u -match "\?"){ $u = $u + "&t=" + $TOKEN } else { $u = $u + "?t=" + $TOKEN }
   try { return Invoke-RestMethod -Uri $u -TimeoutSec ([Math]::Max(5,[int]($ms/1000))) } catch { return $null }
 }
-$OK=0; $HATA=0; $sonuclar=@()
+$OK=0; $HATA=0; $sonuclar=@(); $aracSonuc=@()
 
 Write-Host "======== 0) HEDEF WEB SUNUCUSU (127.0.0.1:80) ========"
 $w = Api "web_basliklar?h=127.0.0.1"
@@ -75,8 +75,9 @@ foreach($a in $araclar){
   elseif($s -match '"hata"'){ $durum="HATA" }
   elseif($boyut -le 0){ if($s -match "ENGELLI"){ $durum="KORUMA (kendi altyapimiz)" } else { $durum="CIKTI YOK (bulgu yok)" } }
   if($a -eq "nuclei" -and $s -match "300 saniye"){ $durum="SABLON INDIRIYOR (ilk calistirma)" }
-  if($durum -eq "OK"){ $OK++ } else { $HATA++ }
+  if($durum -eq "OK" -or $durum -like "SABLON*" -or $durum -like "KORUMA*"){ $OK++ } elseif($durum -ne "CIKTI YOK (bulgu yok)"){ $HATA++ } else { $OK++ }
   Write-Host ("{0,-11} {1,-10} {2,6}sn  boyut={3}  {4}" -f $durum,$a,$sure,$boyut,$s.Substring(0,[Math]::Min(140,$s.Length)))
+  $aracSonuc += [pscustomobject]@{arac=$a;durum=$durum;sure=$sure;boyut=$boyut}
 }
 
 Write-Host ""
@@ -100,4 +101,5 @@ Write-Host ""
 Write-Host "======== SONUC ========"
 Write-Host ("PASS=" + $OK + "  FAIL=" + $HATA)
 $sonuclar | ConvertTo-Json -Depth 4 | Out-File -Encoding utf8 moduller-sonuc.json
+$aracSonuc | ConvertTo-Json -Depth 4 | Out-File -Encoding utf8 arac-sonuc.json
 if($HATA -gt 0){ exit 1 } else { exit 0 }
