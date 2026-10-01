@@ -101,7 +101,7 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 [Run]
 Filename: "{app}\CWPS.exe"; Description: "CYBERWOLF SECURITY'i şimdi başlat"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\OKU-BENI.txt"; Description: "Kullanım kılavuzunu aç"; Flags: shellexec postinstall unchecked skipifsilent
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Add-MpPreference -ExclusionPath '{app}' -ErrorAction Stop; Write-Host 'Defender istisnasi eklendi' }} catch {{ Write-Host 'Defender istisnasi eklenemedi (yonetici gerekli)' }}"""; StatusMsg: "Windows Defender istisnası ekleniyor..."; Flags: runhidden; Tasks: duvar
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Add-MpPreference -ExclusionPath '{app}' -ErrorAction Stop; Write-Host 'Defender istisnasi eklendi' }} catch {{ Write-Host 'Defender istisnasi eklenemedi (yonetici gerekli)' }}"""; StatusMsg: "Windows Defender istisnası ekleniyor..."; Flags: runhidden nowait skipifsilent; Tasks: duvar
 
 [UninstallRun]
 ; Kaldirmadan ONCE calisan program zorla kapatilir (dosya kilitli kalmasin) ✓
