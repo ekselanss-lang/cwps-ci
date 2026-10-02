@@ -109,6 +109,8 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 [Run]
 ; --- EK ARACLAR: Metasploit Framework gomulu MSI sessizce kurulur (payload/encoder modulleri dahil) ---
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath C:\Program Files\Metasploit -ErrorAction SilentlyContinue"""; Flags: runhidden
+Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: "/S"; StatusMsg: "Ncrack kuruluyor..."; Flags: runhidden waituntilterminated
+Filename: "{app}\araclar\wireshark-setup.exe"; Parameters: "/S"; StatusMsg: "Wireshark/tshark kuruluyor (monitor mode yakalama)..."; Flags: runhidden waituntilterminated
 Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: "/S"; StatusMsg: "Npcap paket yakalama surucusu kuruluyor..."; Flags: runhidden waituntilterminated
 Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /qn /norestart"; StatusMsg: "Metasploit Framework kuruluyor (birkac dakika surebilir)..."; Flags: runhidden waituntilterminated
 Filename: "{app}\CWPS.exe"; Description: "CYBERWOLF SECURITY'i şimdi başlat"; Flags: nowait postinstall skipifsilent

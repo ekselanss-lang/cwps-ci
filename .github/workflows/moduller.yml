@@ -133,6 +133,27 @@ jobs:
           New-Item -ItemType Directory -Force -Path listeler | Out-Null
           try { Invoke-WebRequest "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt" -OutFile "listeler\parolalar_rockyou.txt" -UseBasicParsing; Write-Host "PASS rockyou (139MB)" } catch { Write-Host ("rockyou HATA: " + $_) }
           try { Invoke-WebRequest "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Usernames/top-usernames-shortlist.txt" -OutFile "listeler\kullanicilar.txt" -UseBasicParsing; Write-Host "PASS kullanici listesi" } catch { Write-Host ("kullanici HATA: " + $_) }
+          # --- 10) SINIR ASAN ARACLAR: hydra (Windows), ncrack, kerbrute, Wireshark/tshark ---
+          try {
+            Invoke-WebRequest "https://github.com/maaaaz/thc-hydra-windows/releases/download/v9.1/thc-hydra-windows-v9.1.zip" -OutFile hyd.zip -UseBasicParsing
+            Expand-Archive hyd.zip -DestinationPath t_hyd -Force
+            $e = Get-ChildItem t_hyd -Recurse -Filter hydra.exe | Select-Object -First 1
+            if ($e) { Copy-Item $e.DirectoryName "araclar\hydra" -Recurse -Force; Write-Host "PASS hydra (windows)" }
+          } catch { Write-Host ("hydra HATA: " + $_) }
+          try {
+            Invoke-WebRequest "https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_windows_amd64.exe" -OutFile "araclar\kerbrute.exe" -UseBasicParsing
+            Write-Host "PASS kerbrute"
+          } catch { Write-Host ("kerbrute HATA: " + $_) }
+          try {
+            Invoke-WebRequest "https://github.com/nmap/ncrack/releases/download/0.7/ncrack-0.7-setup.exe" -OutFile "araclar\ncrack-0.7-setup.exe" -UseBasicParsing
+            Write-Host "PASS ncrack setup"
+          } catch { Write-Host ("ncrack HATA: " + $_) }
+          try {
+            $pg = Invoke-WebRequest "https://www.wireshark.org/download.html" -UseBasicParsing
+            $mm = [regex]::Match($pg.Content, "Wireshark-([0-9.]+)-x64\.exe")
+            if ($mm.Success) { Invoke-WebRequest ("https://1.na.dl.wireshark.org/win64/" + $mm.Value) -OutFile "araclar\wireshark-setup.exe" -UseBasicParsing; Write-Host ("PASS wireshark " + $mm.Groups[1].Value) }
+            else { Write-Host "ATLA wireshark" }
+          } catch { Write-Host ("wireshark HATA: " + $_) }
           Write-Host "=== EK ARACLAR SONU ==="
           Get-ChildItem araclar | Select-Object -ExpandProperty Name
 
