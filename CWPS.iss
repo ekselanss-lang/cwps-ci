@@ -128,8 +128,8 @@ Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) k
 
 [UninstallRun]
 ; Kaldirmadan ONCE calisan program zorla kapatilir (dosya kilitli kalmasin) ✓
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS.exe /T";        Flags: skipifsilent runhidden; RunOnceId: "cwpsKapat"
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS-Keygen.exe /T"; Flags: skipifsilent runhidden; RunOnceId: "keygenKapat"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS.exe /T";        Flags: runhidden; RunOnceId: "cwpsKapat"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS-Keygen.exe /T"; Flags: runhidden; RunOnceId: "keygenKapat"
 
 [UninstallDelete]
 ; Programin CALISIRKEN urettigi dosyalar (kurulumda yoktu) — kaldirmada temizlensin
