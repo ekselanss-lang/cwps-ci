@@ -1,24 +1,7 @@
 name: kurulum
 on: [push, workflow_dispatch]
 jobs:
-  kali:
-    runs-on: ubuntu-latest
-    timeout-minutes: 70
-    steps:
-      - name: Kali (kali-rolling) cek ve Linux araclarini kur
-        run: |
-          docker pull kalilinux/kali-rolling
-          docker run --name ck kalilinux/kali-rolling bash -c "apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y hydra medusa ncrack wifite reaver hcxtools hcxdumptool responder patator sqlmap aircrack-ng nmap netcat-openbsd wordlists && apt-get clean && rm -rf /var/lib/apt/lists/*"
-          docker export ck -o kali-rootfs.tar
-          ls -la kali-rootfs.tar && du -h kali-rootfs.tar
-      - name: Kali rootfs artefakt yukle
-        uses: actions/upload-artifact@v4
-        with:
-          name: kali-rootfs
-          path: kali-rootfs.tar
-          retention-days: 3
   k:
-    needs: kali
     runs-on: windows-latest
     timeout-minutes: 55
     steps:
@@ -241,17 +224,6 @@ jobs:
           } catch { Write-Host ("KALI HATA: " + $_) }
           Write-Host "=== EK ARACLAR SONU ==="
           Get-ChildItem araclar | Select-Object -ExpandProperty Name
-
-      - name: Kali rootfs indir ve araclar klasorune koy
-        uses: actions/download-artifact@v4
-        with:
-          name: kali-rootfs
-      - name: Kali rootfs araclar icine tasi
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path araclar | Out-Null
-          if (Test-Path kali-rootfs.tar) { Move-Item kali-rootfs.tar araclar\kali-rootfs.tar -Force; Write-Host ("KALI ROOTFS HAZIR: " + [math]::Round((Get-Item araclar\kali-rootfs.tar).Length/1MB,1) + " MB") }
-          else { Write-Host "UYARI: kali rootfs inemedi" }
 
       - name: KURULUM DERLE (musteri)
         shell: pwsh

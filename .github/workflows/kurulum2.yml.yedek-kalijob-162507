@@ -1,24 +1,7 @@
-name: kurulum
+name: kurulum-satici
 on: [push, workflow_dispatch]
 jobs:
-  kali:
-    runs-on: ubuntu-latest
-    timeout-minutes: 70
-    steps:
-      - name: Kali (kali-rolling) cek ve Linux araclarini kur
-        run: |
-          docker pull kalilinux/kali-rolling
-          docker run --name ck kalilinux/kali-rolling bash -c "apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y hydra medusa ncrack wifite reaver hcxtools hcxdumptool responder patator sqlmap aircrack-ng nmap netcat-openbsd wordlists && apt-get clean && rm -rf /var/lib/apt/lists/*"
-          docker export ck -o kali-rootfs.tar
-          ls -la kali-rootfs.tar && du -h kali-rootfs.tar
-      - name: Kali rootfs artefakt yukle
-        uses: actions/upload-artifact@v4
-        with:
-          name: kali-rootfs
-          path: kali-rootfs.tar
-          retention-days: 3
   k:
-    needs: kali
     runs-on: windows-latest
     timeout-minutes: 55
     steps:
@@ -242,175 +225,38 @@ jobs:
           Write-Host "=== EK ARACLAR SONU ==="
           Get-ChildItem araclar | Select-Object -ExpandProperty Name
 
-      - name: Kali rootfs indir ve araclar klasorune koy
-        uses: actions/download-artifact@v4
-        with:
-          name: kali-rootfs
-      - name: Kali rootfs araclar icine tasi
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path araclar | Out-Null
-          if (Test-Path kali-rootfs.tar) { Move-Item kali-rootfs.tar araclar\kali-rootfs.tar -Force; Write-Host ("KALI ROOTFS HAZIR: " + [math]::Round((Get-Item araclar\kali-rootfs.tar).Length/1MB,1) + " MB") }
-          else { Write-Host "UYARI: kali rootfs inemedi" }
-
-      - name: KURULUM DERLE (musteri)
-        shell: pwsh
-        run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" CWPS.iss | Select-Object -Last 12
-          Get-ChildItem Output | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: KURULUM DERLE (satici)
         shell: pwsh
         run: |
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DSATICI /OOutputSatici CWPS.iss | Select-Object -Last 8
           Get-ChildItem OutputSatici | Select-Object Name,Length | Format-Table -AutoSize | Out-String
-      - name: SUNUCUYA YUKLE (kurulum paketleri - oracle'a degil)
-        if: always()
-        shell: bash
-        env:
-          SUNUCU_KEY: ${{ secrets.SUNUCU_KEY }}
-          SUNUCU_HOST: ${{ secrets.SUNUCU_HOST }}
-          SUNUCU_PORT: ${{ secrets.SUNUCU_PORT }}
-          SUNUCU_KULLANICI: ${{ secrets.SUNUCU_KULLANICI }}
-        run: |
-          H="${SUNUCU_HOST:-96.47.167.18}"; P="${SUNUCU_PORT:-1588}"; U="${SUNUCU_KULLANICI:-script42}"
-          if [ -z "$SUNUCU_KEY" ]; then echo "SUNUCU_KEY yok - atlandi"; exit 0; fi
-          mkdir -p ~/.ssh && printf '%s\n' "$SUNUCU_KEY" > ~/.ssh/id_sunucu && chmod 600 ~/.ssh/id_sunucu
-          ssh-keyscan -p "$P" "$H" >> ~/.ssh/known_hosts 2>/dev/null || true
-          ls -la Output OutputSatici 2>/dev/null || true
-          # GUVENLI YUKLEME: once .yeni olarak at, sha256 dogrula, sonra yerine koy ✓
-          # (yarim kalan yukleme = bozuk kurulum dosyasi / "setup files are corrupted" sorunu)
-          for f in Output/*.exe OutputSatici/*.exe; do
-            [ -f "$f" ] || continue
-            b=$(basename "$f")
-            if ! scp -i ~/.ssh/id_sunucu -P "$P" -o StrictHostKeyChecking=no "$f" "$U@$H:~/public_html/indir/$b.yeni"; then
-              echo "HATA  $b yuklenemedi (mevcut dosya korundu)"; continue
-            fi
-            L=$(sha256sum "$f" | cut -d" " -f1)
-            R=$(ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "sha256sum ~/public_html/indir/$b.yeni 2>/dev/null | cut -d\" \" -f1")
-            if [ "$L" = "$R" ]; then
-              ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "mv -f ~/public_html/indir/$b.yeni ~/public_html/indir/$b"
-              echo "TAMAM $b  (boyut $(stat -c%s \"$f\") B, sha ${L:0:16}...)  DOGRULANDI ✓"
-            else
-              echo "HATA  $b sha256 UYUSMUYOR - yuklenmedi (yerel ${L:0:16} / sunucu ${R:0:16})"
-              ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" "rm -f ~/public_html/indir/$b.yeni"
-            fi
-          done
-          ssh -i ~/.ssh/id_sunucu -p "$P" -o StrictHostKeyChecking=no "$U@$H" 'ls -la ~/public_html/indir/ | tail -8'
 
-      - name: GERCEK KURULUM TESTI (sessiz kur + dosya kontrol)
+      - name: SATICI KURULUM TESTI (TEMIZ MAKINE - takilma var mi)
         shell: pwsh
         run: |
-          $setup = (Get-ChildItem Output -Filter *.exe | Select-Object -First 1)
-          Write-Host ("KURULUM PAKETI: " + $setup.Name + "  " + [Math]::Round($setup.Length/1MB,1) + " MB")
-          $p = Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=C:\CWPS-TEST","/LOG=C:\kurulum.log" -PassThru -Wait
-          Write-Host ("CIKIS KODU: " + $p.ExitCode)
+          try { Add-MpPreference -ExclusionPath "C:\SQT" -ErrorAction SilentlyContinue } catch {}
+          try { Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue } catch {}
+          Write-Host "--- DEFENDER TEHDIT KAYDI (varsa AV engelliyor demektir) ---"
+          try { $t=Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -Last 5; if($t){ $t | Format-Table -AutoSize | Out-String } else { Write-Host "tehdit yok" } } catch {}
+          $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
+          Write-Host ("PAKET: " + $s.Name + "  " + [Math]::Round($s.Length/1MB,1) + " MB")
+          $t0=Get-Date
+          $p=Start-Process $s.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOCANCEL","/DIR=C:\SQT","/LOG=$env:TEMP\sqt.log" -PassThru
+          $bitti=$p.WaitForExit(2700000)   # 45 dk: Defender araclari tararken kurulum uzun surebilir
+          $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
+          if(-not $bitti){
+            Write-Host ("FAIL  kurulum 45 dk'da BITMEDI (PID " + $p.Id + ")")
+            try { Write-Host "--- DEFENDER KARANTINA ---"; Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -Last 3 | Format-List ThreatName,Resources | Out-String } catch {}
+            Write-Host "--- SURECLER ---"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
+            if(Test-Path "$env:TEMP\sqt.log"){ Write-Host "--- INNO LOG SON 20 ---"; Get-Content "$env:TEMP\sqt.log" -Tail 20 }
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+            exit 1
+          }
+          Write-Host ("OK    kurulum TAMAMLANDI (" + $sure + " sn, cikis kodu=" + $p.ExitCode + ")")
           Start-Sleep -Seconds 3
           $ok=0; $hata=0
-          function Kontrol($ad,$yol){
-            if(Test-Path $yol){ Write-Host ("PASS  " + $ad + " -> " + [Math]::Round((Get-Item $yol).Length/1KB,0) + " KB"); $script:ok++ }
-            else { Write-Host ("FAIL  " + $ad + " YOK -> " + $yol); $script:hata++ } }
-          Kontrol "CWPS.exe"            "C:\CWPS-TEST\CWPS.exe"
-          Kontrol "OKU-BENI.txt"        "C:\CWPS-TEST\OKU-BENI.txt"
-          Kontrol "LISANS.txt"          "C:\CWPS-TEST\LISANS.txt"
-          Kontrol "araclar\nmap.exe"    "C:\CWPS-TEST\araclar\nmap.exe"
-          Kontrol "araclar\dnsx.exe"    "C:\CWPS-TEST\araclar\dnsx.exe"
-          Kontrol "araclar\katana.exe"    "C:\CWPS-TEST\araclar\katana.exe"
-          Kontrol "araclar\naabu.exe"    "C:\CWPS-TEST\araclar\naabu.exe"
-          Kontrol "araclar\httpx.exe"    "C:\CWPS-TEST\araclar\httpx.exe"
-          Kontrol "araclar\subfinder.exe"    "C:\CWPS-TEST\araclar\subfinder.exe"
-          Kontrol "araclar\nuclei.exe"    "C:\CWPS-TEST\araclar\nuclei.exe"
-          Kontrol "araclar\gobuster.exe"    "C:\CWPS-TEST\araclar\gobuster.exe"
-          Kontrol "araclar\ffuf.exe"    "C:\CWPS-TEST\araclar\ffuf.exe"
-          Kontrol "araclar\subfinder.exe" "C:\CWPS-TEST\araclar\subfinder.exe"
-          Kontrol "araclar\httpx.exe"   "C:\CWPS-TEST\araclar\httpx.exe"
-          Kontrol "araclar\katana.exe"  "C:\CWPS-TEST\araclar\katana.exe"
-          Kontrol "kaldirma araci"      "C:\CWPS-TEST\unins000.exe"
-          if(Test-Path "C:\CWPS-TEST\CWPS-Keygen.exe"){ Write-Host "FAIL  MUSTERI surumunde KEYGEN var (olmamali)"; $hata++ }
-          else { Write-Host "PASS  musteri surumunde keygen YOK"; $ok++ }
-          # Program gercekten calisiyor mu? (motor ayaga kalkmali)
-          $pr = Start-Process "C:\CWPS-TEST\CWPS.exe" -PassThru
-          Start-Sleep -Seconds 14
-          $port=0
-          foreach($pt in 48921..48960){ try{ $r=Invoke-RestMethod "http://127.0.0.1:$pt/api/durum?t=cwps-yerel-9f3a7d" -TimeoutSec 3; $port=$pt; break }catch{} }
-          if($port -gt 0){
-            $l = Invoke-RestMethod "http://127.0.0.1:$port/api/lisans?t=cwps-yerel-9f3a7d" -TimeoutSec 20
-            Write-Host ("PASS  kurulan program calisti: port=" + $port + " surum=" + $l.surum + " mod=" + $l.mod + " makine=" + $l.makine); $ok++
-            # lisans yazma izni var mi? (Program Files yerine kullanici klasoru)
-            $test = "C:\CWPS-TEST\yazma_testi.txt"
-            try { Set-Content -Path $test -Value "ok" -ErrorAction Stop; Write-Host "PASS  program klasorune yazilabiliyor (lisans kaydedilebilir)"; $ok++; Remove-Item $test -Force } catch { Write-Host "FAIL  klasore yazilamiyor (lisans kaydedilemez)"; $hata++ }
-          } else { Write-Host "FAIL  kurulan program motoru ayaga kalkmadi"; $hata++ }
-          Stop-Process -Id $pr.Id -Force -ErrorAction SilentlyContinue
-          Get-Process CWPS -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-          Write-Host ("=== KURULUM TESTI: PASS=" + $ok + " FAIL=" + $hata + " ===")
-      - name: SATICI KURULUM TESTI (keygen kuruluyor mu - sure sinirli)
-        shell: pwsh
-        run: |
-          function Kur($exe,$ad,$dizin,$sinir){
-            $t0=Get-Date
-            Write-Host ("--- " + $ad + " basliyor: " + $exe.Name + " (" + [Math]::Round($exe.Length/1MB,1) + " MB) -> " + $dizin)
-            $p=Start-Process $exe.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOCANCEL","/DIR=$dizin","/LOG=$env:TEMP\kur-$ad.log" -PassThru
-            $ok=$p.WaitForExit($sinir*1000)
-            $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
-            if(-not $ok){ Write-Host ("FAIL  " + $ad + " " + $sinir + " sn'de BITMEDI (PID " + $p.Id + ") - zorla kapatiliyor")
-              Write-Host "--- TAKILMA ANINDA CALISAN SURECLER ---"
-              Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge|powershell|cmd" } | Select-Object ProcessName,Id,StartTime | Format-Table -AutoSize | Out-String
-              Get-ChildItem "$env:TEMP" -Filter "Setup Log*.txt" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host ("--- INNO OTO LOG: " + $_.Name + " ---"); Get-Content $_.FullName -Tail 15 }
-              Get-ChildItem "$env:TEMP" -Filter "*satici*" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host ("--- LOG: " + $_.Name + " ---"); Get-Content $_.FullName -Tail 15 }; Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; taskkill /F /T /IM (($exe.Name) -replace "\.exe$","")  2>$null | Out-Null
-              $lg="$env:TEMP\kur-$ad.log"; if(Test-Path $lg){ Write-Host "--- INNO LOG SON SATIRLAR ---"; Get-Content $lg -Tail 12 } ; return $false }
-            Write-Host ("OK    " + $ad + " bitti (" + $sure + " sn, cikis kodu=" + $p.ExitCode + ")")
-            $lg="$env:TEMP\kur-$ad.log"; if(Test-Path $lg){ Write-Host "--- INNO LOG SON 6 SATIR ---"; Get-Content $lg -Tail 6 }
-            return $true
-          }
-          if(Test-Path "C:\CWPS-TEST\unins000.exe"){
-            Write-Host "Once musteri kurulumu kaldiriliyor (AppId cakismasi olmasin)"
-            Start-Process "C:\CWPS-TEST\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru | Wait-Process -Timeout 600 -ErrorAction SilentlyContinue
-            # kaldirici/kurulum surecleri TAMAMEN bitene kadar bekle (yoksa satici kurulumu takilir) ✓
-            for($i=0; $i -lt 90; $i++){
-              $k = @(Get-Process -Name "unins*","CWPS-Setup*","*_iu*","_iu*" -ErrorAction SilentlyContinue)
-              if($k.Count -eq 0){ break }
-              Write-Host ("bekleniyor... kalan surec: " + ($k | ForEach-Object { $_.ProcessName }) )
-              Start-Sleep -Seconds 5
-            }
-            Start-Sleep -Seconds 5
-          }
-          # SATICI oncesi: TUM kalintilari kapat (kaldirici/setup/edge dahil) ✓
-          taskkill /F /IM CWPS.exe 2>$null | Out-Null
-          taskkill /F /IM CWPS-Keygen.exe 2>$null | Out-Null
-          taskkill /F /IM unins000.exe 2>$null | Out-Null
-          taskkill /F /IM msedge.exe 2>$null | Out-Null
-          Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like "*_iu*" -or $_.ProcessName -like "CWPS-Setup*" -or $_.ProcessName -like "unins*" } | Stop-Process -Force -ErrorAction SilentlyContinue
-          Start-Sleep -Seconds 8
-          Write-Host "kalan surecler:"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
-          $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
-          $k1 = Kur $s "satici" "C:\KW-TEST" 2700   # 45 dk (Defender taramasi yavaslatabiliyor)
-          Start-Sleep -Seconds 2
-          $ok=0; $hata=0
-          if(-not $k1){ Write-Host "FAIL  satici kurulumu TAMAMLANMADI (takildi)"; $hata++ }
-          if(Test-Path "C:\KW-TEST\CWPS-Keygen.exe"){ Write-Host ("PASS  satici kurulumunda CWPS-Keygen.exe VAR -> " + [Math]::Round((Get-Item "C:\KW-TEST\CWPS-Keygen.exe").Length/1KB,0) + " KB"); $ok++ } else { Write-Host "FAIL  satici kurulumunda keygen YOK"; $hata++ }
-          if(Test-Path "C:\KW-TEST\CWPS.exe"){ Write-Host "PASS  satici kurulumunda CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
-          if(Test-Path "C:\KW-TEST\araclar"){ Write-Host ("PASS  araclar klasoru kuruldu (" + (Get-ChildItem "C:\KW-TEST\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "UYARI araclar klasoru yok"; }
-          Write-Host ("SATICI TEST SONUC: PASS=" + $ok + " HATA=" + $hata)
+          if(Test-Path "C:\SQT\CWPS.exe"){ Write-Host "PASS  CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
+          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host ("PASS  SATICI surumunde keygen VAR (lisans uretici) -> " + [Math]::Round((Get-Item "C:\SQT\CWPS-Keygen.exe").Length/1KB,0) + " KB"); $ok++ } else { Write-Host "FAIL  SATICI surumunde keygen YOK (olmali!)"; $hata++ }
+          if(Test-Path "C:\SQT\araclar"){ Write-Host ("PASS  araclar (" + (Get-ChildItem "C:\SQT\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "FAIL  araclar yok"; $hata++ }
+          Write-Host ("TEMIZ MAKINE TESTI: PASS=" + $ok + " HATA=" + $hata)
           if($hata -gt 0){ exit 1 }
-      - name: GERCEK KALDIRMA TESTI (sure sinirli)
-        shell: pwsh
-        run: |
-          $u="C:\KW-TEST\unins000.exe"
-          if(-not (Test-Path $u)){ Write-Host "FAIL  kaldirici yok: $u"; exit 1 }
-          $t0=Get-Date
-          $p=Start-Process $u -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru
-          $ok2=$p.WaitForExit(420000)
-          if(-not $ok2){ Write-Host ("FAIL  kaldirma 420 sn'de bitmedi - zorla kapatiliyor"); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; taskkill /F /IM unins000.exe 2>$null | Out-Null; Start-Sleep -Seconds 10 }
-          else { Write-Host ("OK    kaldirma bitti (" + [Math]::Round(((Get-Date)-$t0).TotalSeconds,1) + " sn)") }
-          Start-Sleep -Seconds 5
-          if(Test-Path "C:\KW-TEST\CWPS.exe"){ Write-Host "FAIL  kaldirma sonrasi exe duruyor" } else { Write-Host "PASS  kaldirma calisti (exe silindi)" }
-          if(Test-Path "C:\KW-TEST"){ Write-Host ("KALAN DOSYALAR: " + ((Get-ChildItem "C:\KW-TEST" -Force | Select-Object -ExpandProperty Name) -join ", ")) } else { Write-Host "PASS  klasor tamamen silindi" }
-
-      - name: PAKETLERI ARTIFACT OLARAK YUKLE
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cwps-kurulum-paketleri
-          path: |
-            Output/*.exe
-            OutputSatici/*.exe
-          if-no-files-found: warn
