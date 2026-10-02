@@ -1,0 +1,39 @@
+﻿KURULACAK BILESENLER
+====================
+
+Bu kurulum sirasinda asagidakiler kurulur. Bazi bilesenlerin KENDI KURULUM
+EKRANI acilir - ilerlemeyi oradan takip edebilirsiniz.
+
+1) CYBERWOLF SECURITY (CWPS.exe)
+   Program klasoru + masaustu kisayolu
+
+2) GOMULU PENTEST ARACLARI   (program klasoru >> araclar)
+   Tarama  : nmap . nuclei . ffuf . gobuster . subfinder . httpx . naabu . katana . dnsx
+   Parola  : hashcat . John the Ripper . hydra (Windows) . ncrack . kerbrute
+   Kesif   : amass . feroxbuster . nuclei sablonlari
+   SQL     : sqlmap (+ gomulu Python)
+   WiFi    : aircrack-ng
+   Wordlist: rockyou.txt (139 MB) + kullanici listeleri
+
+3) METASPLOIT FRAMEWORK   >>> KURULUM EKRANI ACILIR
+   msfconsole + msfvenom + 500'den fazla payload/encoder modulu
+
+4) WIRESHARK / TSHARK   >>> KURULUM EKRANI ACILIR
+   Monitor mode paket yakalama (.pcap uretir)
+
+5) NPCAP   >>> KURULUM EKRANI ACILIR
+   Paket yakalama surucusu (nmap ve Wireshark icin gerekli)
+
+6) NCRACK   >>> KURULUM EKRANI ACILIR
+   Cok hizli hesap kirma motoru (RDP/SSH/VNC/SMB)
+
+7) KALI LINUX (WSL) + LINUX ARACLARI   >>> ILERLEME EKRANDA GORUNUR
+   wifite . reaver (WPS) . hcxtools . hcxdumptool . responder .
+   patator . medusa . sqlmap . aircrack-ng . nmap
+
+------------------------------------------------------------
+NOTLAR
+- Kali (WSL) icin Windows YENIDEN BASLATMA isteyebilir. Yeniden baslattiktan
+  sonra Kali kurulumu kendi kendine devam eder.
+- Kurulum bitince program otomatik acilir; moduller araclari otomatik bulur.
+- Tum araclar yalnizca YETKILI oldugunuz sistemlerde kullanilmalidir.

@@ -107,24 +107,19 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.exe"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
 
 [Run]
-; ============================================================
-;  GORUNUR KURULUM: alt kurulumlar EKRANDA gosterilir (sessiz DEGIL)
-; ============================================================
-; 1) Ncrack - hesap kirma motoru
-Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: ""; StatusMsg: "Ncrack kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
-; 2) Wireshark / tshark - monitor mode paket yakalama
-Filename: "{app}\araclar\wireshark-setup.exe"; Parameters: ""; StatusMsg: "Wireshark/tshark kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
-; 3) Npcap - paket yakalama surucusu (Wireshark/nmap icin)
-Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: ""; StatusMsg: "Npcap surucusu kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
-; 4) Metasploit Framework - payload/encoder modulleri
-Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /norestart"; StatusMsg: "Metasploit Framework kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
-; 5) Defender istisnasi (Metasploit klasoru)
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath 'C:\Program Files\Metasploit' -ErrorAction SilentlyContinue"""; Flags: runhidden waituntilterminated
-; 6) WSL ozelligi (Kali icin) - yeniden baslatma sonrasi devreye girer
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart"; StatusMsg: "WSL ozelligi etkinlestiriliyor..."; Flags: runhidden waituntilterminated
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:VirtualMachinePlatform /all /norestart"; StatusMsg: "Sanal makine platformu etkinlestiriliyor..."; Flags: runhidden waituntilterminated
-; 7) KALI (WSL) - ice aktarma + Linux araclari (ilerleme EKRANDA)
-Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) kuruluyor - ilerleme ekranda..."; Flags: waituntilterminated
+; --- WSL KALI: Linux araclari icin (yeniden baslatma sonrasi otomatik kurulur) ---
+Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart"; Flags: runhidden waituntilterminated
+Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:VirtualMachinePlatform /all /norestart"; Flags: runhidden waituntilterminated
+Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) kurulumu hazirlaniyor..."; Flags: runhidden waituntilterminated
+; --- EK ARACLAR: Metasploit Framework gomulu MSI sessizce kurulur (payload/encoder modulleri dahil) ---
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath C:\Program Files\Metasploit -ErrorAction SilentlyContinue"""; Flags: runhidden
+Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: "/S"; StatusMsg: "Ncrack kuruluyor..."; Flags: runhidden waituntilterminated
+Filename: "{app}\araclar\wireshark-setup.exe"; Parameters: "/S"; StatusMsg: "Wireshark/tshark kuruluyor (monitor mode yakalama)..."; Flags: runhidden waituntilterminated
+Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: "/S"; StatusMsg: "Npcap paket yakalama surucusu kuruluyor..."; Flags: runhidden waituntilterminated
+Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /qn /norestart"; StatusMsg: "Metasploit Framework kuruluyor (birkac dakika surebilir)..."; Flags: runhidden waituntilterminated
+Filename: "{app}\CWPS.exe"; Description: "CYBERWOLF SECURITY'i şimdi başlat"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\OKU-BENI.txt"; Description: "Kullanım kılavuzunu aç"; Flags: shellexec postinstall unchecked skipifsilent
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Add-MpPreference -ExclusionPath '{app}' -ErrorAction Stop; Write-Host 'Defender istisnasi eklendi' }} catch {{ Write-Host 'Defender istisnasi eklenemedi (yonetici gerekli)' }}"""; StatusMsg: "Windows Defender istisnası ekleniyor..."; Flags: runhidden nowait skipifsilent; Tasks: duvar
 
 [UninstallRun]
 ; Kaldirmadan ONCE calisan program zorla kapatilir (dosya kilitli kalmasin) ✓
