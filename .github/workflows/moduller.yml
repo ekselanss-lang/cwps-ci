@@ -129,6 +129,10 @@ jobs:
             Invoke-WebRequest "https://npcap.com/dist/npcap-1.79.exe" -OutFile "araclar\npcap-1.79.exe" -UseBasicParsing
             Write-Host "PASS npcap surucu"
           } catch { Write-Host ("npcap HATA: " + $_) }
+          # --- 9) WORDLIST paketi (hesap kirma modulu) ---
+          New-Item -ItemType Directory -Force -Path listeler | Out-Null
+          try { Invoke-WebRequest "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt" -OutFile "listeler\parolalar_rockyou.txt" -UseBasicParsing; Write-Host "PASS rockyou (139MB)" } catch { Write-Host ("rockyou HATA: " + $_) }
+          try { Invoke-WebRequest "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Usernames/top-usernames-shortlist.txt" -OutFile "listeler\kullanicilar.txt" -UseBasicParsing; Write-Host "PASS kullanici listesi" } catch { Write-Host ("kullanici HATA: " + $_) }
           Write-Host "=== EK ARACLAR SONU ==="
           Get-ChildItem araclar | Select-Object -ExpandProperty Name
 
