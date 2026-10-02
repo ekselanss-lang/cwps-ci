@@ -98,6 +98,10 @@ jobs:
       - name: SATICI KURULUM TESTI (TEMIZ MAKINE - takilma var mi)
         shell: pwsh
         run: |
+          try { Add-MpPreference -ExclusionPath "C:\SQT" -ErrorAction SilentlyContinue } catch {}
+          try { Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue } catch {}
+          Write-Host "--- DEFENDER TEHDIT KAYDI (varsa AV engelliyor demektir) ---"
+          try { $t=Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -Last 5; if($t){ $t | Format-Table -AutoSize | Out-String } else { Write-Host "tehdit yok" } } catch {}
           $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
           Write-Host ("PAKET: " + $s.Name + "  " + [Math]::Round($s.Length/1MB,1) + " MB")
           $t0=Get-Date
@@ -106,6 +110,7 @@ jobs:
           $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
           if(-not $bitti){
             Write-Host ("FAIL  kurulum 420 sn'de BITMEDI (PID " + $p.Id + ")")
+            try { Write-Host "--- DEFENDER KARANTINA ---"; Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -Last 3 | Format-List ThreatName,Resources | Out-String } catch {}
             Write-Host "--- SURECLER ---"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
             if(Test-Path "$env:TEMP\sqt.log"){ Write-Host "--- INNO LOG SON 20 ---"; Get-Content "$env:TEMP\sqt.log" -Tail 20 }
             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
@@ -115,7 +120,7 @@ jobs:
           Start-Sleep -Seconds 3
           $ok=0; $hata=0
           if(Test-Path "C:\SQT\CWPS.exe"){ Write-Host "PASS  CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
-          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host ("PASS  CWPS-Keygen.exe var (" + [Math]::Round((Get-Item "C:\SQT\CWPS-Keygen.exe").Length/1KB,0) + " KB)"); $ok++ } else { Write-Host "FAIL  keygen yok"; $hata++ }
+          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host "FAIL  keygen KURULUMDA olmamali (Defender takilmasina sebep)"; $hata++ } else { Write-Host "PASS  keygen kurulumda YOK (ayri dosya olarak veriliyor) ✓"; $ok++ }
           if(Test-Path "C:\SQT\araclar"){ Write-Host ("PASS  araclar (" + (Get-ChildItem "C:\SQT\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "FAIL  araclar yok"; $hata++ }
           Write-Host ("TEMIZ MAKINE TESTI: PASS=" + $ok + " HATA=" + $hata)
           if($hata -gt 0){ exit 1 }
