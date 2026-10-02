@@ -111,25 +111,25 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 ;  GORUNUR KURULUM: alt kurulumlar EKRANDA gosterilir (sessiz DEGIL)
 ; ============================================================
 ; 1) Ncrack - hesap kirma motoru
-Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: ""; StatusMsg: "Ncrack kuruluyor - kurulum ekrani acilacak..."; Flags: skipifsilent waituntilterminated
+Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: ""; StatusMsg: "Ncrack kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
 ; 2) Wireshark / tshark - monitor mode paket yakalama
-Filename: "{app}\araclar\wireshark-setup.exe"; Parameters: ""; StatusMsg: "Wireshark/tshark kuruluyor - kurulum ekrani acilacak..."; Flags: skipifsilent waituntilterminated
+Filename: "{app}\araclar\wireshark-setup.exe"; Parameters: ""; StatusMsg: "Wireshark/tshark kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
 ; 3) Npcap - paket yakalama surucusu (Wireshark/nmap icin)
-Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: ""; StatusMsg: "Npcap surucusu kuruluyor - kurulum ekrani acilacak..."; Flags: skipifsilent waituntilterminated
+Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: ""; StatusMsg: "Npcap surucusu kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
 ; 4) Metasploit Framework - payload/encoder modulleri
-Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /norestart"; StatusMsg: "Metasploit Framework kuruluyor - kurulum ekrani acilacak..."; Flags: skipifsilent waituntilterminated
+Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /norestart"; StatusMsg: "Metasploit Framework kuruluyor - kurulum ekrani acilacak..."; Flags: waituntilterminated
 ; 5) Defender istisnasi (Metasploit klasoru)
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath 'C:\Program Files\Metasploit' -ErrorAction SilentlyContinue"""; Flags: skipifsilent runhidden waituntilterminated
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath 'C:\Program Files\Metasploit' -ErrorAction SilentlyContinue"""; Flags: runhidden waituntilterminated
 ; 6) WSL ozelligi (Kali icin) - yeniden baslatma sonrasi devreye girer
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart"; StatusMsg: "WSL ozelligi etkinlestiriliyor..."; Flags: skipifsilent runhidden waituntilterminated
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:VirtualMachinePlatform /all /norestart"; StatusMsg: "Sanal makine platformu etkinlestiriliyor..."; Flags: skipifsilent runhidden waituntilterminated
+Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart"; StatusMsg: "WSL ozelligi etkinlestiriliyor..."; Flags: runhidden waituntilterminated
+Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:VirtualMachinePlatform /all /norestart"; StatusMsg: "Sanal makine platformu etkinlestiriliyor..."; Flags: runhidden waituntilterminated
 ; 7) KALI (WSL) - ice aktarma + Linux araclari (ilerleme EKRANDA)
-Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) kuruluyor - ilerleme ekranda..."; Flags: skipifsilent waituntilterminated
+Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) kuruluyor - ilerleme ekranda..."; Flags: waituntilterminated
 
 [UninstallRun]
 ; Kaldirmadan ONCE calisan program zorla kapatilir (dosya kilitli kalmasin) ✓
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS.exe /T";        Flags: skipifsilent runhidden; RunOnceId: "cwpsKapat"
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS-Keygen.exe /T"; Flags: skipifsilent runhidden; RunOnceId: "keygenKapat"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS.exe /T";        Flags: runhidden; RunOnceId: "cwpsKapat"
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM CWPS-Keygen.exe /T"; Flags: runhidden; RunOnceId: "keygenKapat"
 
 [UninstallDelete]
 ; Programin CALISIRKEN urettigi dosyalar (kurulumda yoktu) — kaldirmada temizlensin
