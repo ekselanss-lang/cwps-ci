@@ -80,7 +80,7 @@ Name: "{app}\raporlar";                       Permissions: users-modify
 Source: "CWPS.exe";            DestDir: "{app}"; Flags: ignoreversion
 Source: "LISANS.txt";          DestDir: "{app}"; Flags: ignoreversion
 Source: "OKU-BENI.txt";        DestDir: "{app}"; Flags: ignoreversion
-Source: "araclar\*";           DestDir: "{app}\araclar"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "araclar\*.exe";       DestDir: "{app}\araclar"; Flags: ignoreversion
 Source: "araclar\*.dll";       DestDir: "{app}\araclar"; Flags: ignoreversion skipifsourcedoesntexist
 ; SATICI surumunde lisans anahtar uretici KURULUMUN ICINDE gelir (musteri surumunde ASLA olmaz ✗)
 #ifdef SATICI
@@ -107,10 +107,6 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.exe"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
 
 [Run]
-; --- EK ARACLAR: Metasploit Framework gomulu MSI sessizce kurulur (payload/encoder modulleri dahil) ---
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath C:\Program Files\Metasploit -ErrorAction SilentlyContinue"""; Flags: runhidden
-Filename: "{app}\araclar\npcap-1.79.exe"; Parameters: "/S"; StatusMsg: "Npcap paket yakalama surucusu kuruluyor..."; Flags: runhidden waituntilterminated
-Filename: "msiexec.exe"; Parameters: "/i ""{app}\araclar\metasploitframework-latest.msi"" /qn /norestart"; StatusMsg: "Metasploit Framework kuruluyor (birkac dakika surebilir)..."; Flags: runhidden waituntilterminated
 Filename: "{app}\CWPS.exe"; Description: "CYBERWOLF SECURITY'i şimdi başlat"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\OKU-BENI.txt"; Description: "Kullanım kılavuzunu aç"; Flags: shellexec postinstall unchecked skipifsilent
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""try {{ Add-MpPreference -ExclusionPath '{app}' -ErrorAction Stop; Write-Host 'Defender istisnasi eklendi' }} catch {{ Write-Host 'Defender istisnasi eklenemedi (yonetici gerekli)' }}"""; StatusMsg: "Windows Defender istisnası ekleniyor..."; Flags: runhidden nowait skipifsilent; Tasks: duvar
