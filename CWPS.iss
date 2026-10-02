@@ -82,15 +82,22 @@ Source: "LISANS.txt";          DestDir: "{app}"; Flags: ignoreversion
 Source: "OKU-BENI.txt";        DestDir: "{app}"; Flags: ignoreversion
 Source: "araclar\*.exe";       DestDir: "{app}\araclar"; Flags: ignoreversion
 Source: "araclar\*.dll";       DestDir: "{app}\araclar"; Flags: ignoreversion skipifsourcedoesntexist
+; SATICI surumunde lisans anahtar uretici KURULUMUN ICINDE gelir (musteri surumunde ASLA olmaz ✗)
+#ifdef SATICI
+Source: "CWPS-Keygen.exe";     DestDir: "{app}"; Flags: ignoreversion
+#endif
 Source: "araclar\*.dat";       DestDir: "{app}\araclar"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "listeler\*";          DestDir: "{app}\listeler"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 ; KEYGEN ARTIK KURULUMA GOMULMUYOR ✗
 ; Sebep: Defender/AV, keygen iceren kurulumu "tehdit" sayip kurulumu kilitliyor (kayit defteri asamasinda takiliyor).
-; Cozum: keygen AYRI dosya olarak verilir (3-KEYGEN/CWPS-Keygen.exe) — satici onu istedigi gibi kullanir ✓
+; Cozum: MUSTERI surumunde keygen YOK ✗ · SATICI surumunde keygen KURULUMUN ICINDE gelir ✓ (ayrica 3-KEYGEN/ klasorunde de verilir)
 ; (Satici kurulumu sadece AppId + isim olarak farkli: musteri surumuyle yan yana kurulabilir)
 
 [Icons]
 Name: "{autoprograms}\CYBERWOLF SECURITY";                  Filename: "{app}\CWPS.exe"; WorkingDir: "{app}"; Tasks: baslatmenu
+#ifdef SATICI
+Name: "{autoprograms}\Lisans Anahtar Üretici";             Filename: "{app}\CWPS-Keygen.exe"; WorkingDir: "{app}"; Tasks: baslatmenu
+#endif
 Name: "{autoprograms}\Kaldır (Uninstall)";                  Filename: "{uninstallexe}"
 Name: "{autodesktop}\CYBERWOLF SECURITY";                   Filename: "{app}\CWPS.exe"; WorkingDir: "{app}"; Tasks: masaustu
 

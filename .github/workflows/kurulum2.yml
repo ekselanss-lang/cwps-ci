@@ -29,6 +29,12 @@ jobs:
           g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS.exe dis.cpp motor.cpp -lws2_32 -ladvapi32 -lcrypt32 -lole32 -luuid -lshell32 -liphlpapi -lwininet -lcomctl32 -lgdi32
           g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS-Keygen.exe keygen_gui.cpp -lcomctl32 -lgdi32 -lcomdlg32 -luser32
           ls -la CWPS.exe CWPS-Keygen.exe
+      - name: Surum basligi duzeltmesi (9.8 -> 9.9)
+        shell: pwsh
+        run: |
+          $d = Get-Content dis.cpp -Raw
+          $y = $d -replace '<title>CYBERWOLF SECURITY 9\.8</title>','<title>CYBERWOLF SECURITY 9.9</title>'
+          if ($y -ne $d) { Set-Content dis.cpp $y -NoNewline; Write-Host "pencere basligi 9.9 yapildi ✓" } else { Write-Host "baslik zaten guncel ✓" }
       - name: Inno Setup kur
         shell: pwsh
         run: choco install innosetup -y --no-progress
@@ -125,7 +131,7 @@ jobs:
           Start-Sleep -Seconds 3
           $ok=0; $hata=0
           if(Test-Path "C:\SQT\CWPS.exe"){ Write-Host "PASS  CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
-          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host "FAIL  keygen KURULUMDA olmamali (Defender takilmasina sebep)"; $hata++ } else { Write-Host "PASS  keygen kurulumda YOK (ayri dosya olarak veriliyor) ✓"; $ok++ }
+          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host ("PASS  SATICI surumunde keygen VAR (lisans uretici) -> " + [Math]::Round((Get-Item "C:\SQT\CWPS-Keygen.exe").Length/1KB,0) + " KB"); $ok++ } else { Write-Host "FAIL  SATICI surumunde keygen YOK (olmali!)"; $hata++ }
           if(Test-Path "C:\SQT\araclar"){ Write-Host ("PASS  araclar (" + (Get-ChildItem "C:\SQT\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "FAIL  araclar yok"; $hata++ }
           Write-Host ("TEMIZ MAKINE TESTI: PASS=" + $ok + " HATA=" + $hata)
           if($hata -gt 0){ exit 1 }
