@@ -147,11 +147,6 @@ begin
   Result := '';
 end;
 
-function InitializeSetup(): Boolean;
-begin
-  Result := True;
-end;
-
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
