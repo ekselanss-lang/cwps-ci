@@ -154,6 +154,34 @@ jobs:
             if ($mm.Success) { Invoke-WebRequest ("https://1.na.dl.wireshark.org/win64/" + $mm.Value) -OutFile "araclar\wireshark-setup.exe" -UseBasicParsing; Write-Host ("PASS wireshark " + $mm.Groups[1].Value) }
             else { Write-Host "ATLA wireshark" }
           } catch { Write-Host ("wireshark HATA: " + $_) }
+          # --- 11) WSL KALI: kalilinux/kali-rolling kok dosya sistemi (Linux araclari icin) ---
+          try {
+            $tok = (Invoke-RestMethod "https://auth.docker.io/token?service=registry.docker.io&scope=repository:kalilinux/kali-rolling:pull").token
+            $hdr = @{ Authorization = "Bearer $tok"; Accept = "application/vnd.docker.distribution.manifest.v2+json" }
+            $mf = Invoke-RestMethod -Headers $hdr "https://registry-1.docker.io/v2/kalilinux/kali-rolling/manifests/latest"
+            Write-Host ("Kali katman sayisi: " + $mf.layers.Count)
+            New-Item -ItemType Directory -Force -Path t_kali | Out-Null
+            $i = 0
+            foreach ($l in $mf.layers) {
+              $i++
+              $f = "t_kali\l$i.tgz"
+              Invoke-WebRequest -Headers $hdr ("https://registry-1.docker.io/v2/kalilinux/kali-rolling/blobs/" + $l.digest) -OutFile $f -UseBasicParsing
+              Write-Host ("  katman $i indirildi: " + [math]::Round((Get-Item $f).Length/1MB,1) + " MB")
+            }
+            # katmanlari sirayla ac (beyaz dosyalari da uygula)
+            New-Item -ItemType Directory -Force -Path t_kali/root | Out-Null
+            Get-ChildItem t_kali -Filter "l*.tgz" | Sort-Object { [int]($_.BaseName -replace "l","") } | ForEach-Object {
+              tar -xzf $_.FullName -C "t_kali/root" 2>$null
+              if (Test-Path "t_kali/root/.wh..wh..opq") { Remove-Item "t_kali/root/.wh..wh..opq" -Force -Recurse -ErrorAction SilentlyContinue }
+              Get-ChildItem "t_kali/root" -Filter ".wh.*" -Force -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item $_.FullName -Force -Recurse -ErrorAction SilentlyContinue }
+            }
+            # WSL --import icin sade tar
+            Push-Location "t_kali/root"
+            tar -cf "..\..\araclar\kali-rootfs.tar" .
+            Pop-Location
+            $mb = [math]::Round((Get-Item "araclar\kali-rootfs.tar").Length/1MB,1)
+            Write-Host ("PASS kali rootfs " + $mb + " MB")
+          } catch { Write-Host ("KALI HATA: " + $_) }
           Write-Host "=== EK ARACLAR SONU ==="
           Get-ChildItem araclar | Select-Object -ExpandProperty Name
 

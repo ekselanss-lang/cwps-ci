@@ -107,10 +107,6 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.ex
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\CWPS.exe"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletekey
 
 [Run]
-; --- WSL KALI: Linux araclari icin (yeniden baslatma sonrasi otomatik kurulur) ---
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart"; Flags: runhidden waituntilterminated
-Filename: "{sys}\dism.exe"; Parameters: "/online /enable-feature /featurename:VirtualMachinePlatform /all /norestart"; Flags: runhidden waituntilterminated
-Filename: "{app}\araclar\kali-kur.cmd"; Parameters: ""; StatusMsg: "Kali (WSL) kurulumu hazirlaniyor..."; Flags: runhidden waituntilterminated
 ; --- EK ARACLAR: Metasploit Framework gomulu MSI sessizce kurulur (payload/encoder modulleri dahil) ---
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath C:\Program Files\Metasploit -ErrorAction SilentlyContinue"""; Flags: runhidden
 Filename: "{app}\araclar\ncrack-0.7-setup.exe"; Parameters: "/S"; StatusMsg: "Ncrack kuruluyor..."; Flags: runhidden waituntilterminated
