@@ -218,7 +218,7 @@ jobs:
           Start-Sleep -Seconds 8
           Write-Host "kalan surecler:"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
           $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
-          $k1 = Kur $s "satici" "C:\KW-TEST" 900
+          $k1 = Kur $s "satici" "C:\KW-TEST" 2700   # 45 dk (Defender taramasi yavaslatabiliyor)
           Start-Sleep -Seconds 2
           $ok=0; $hata=0
           if(-not $k1){ Write-Host "FAIL  satici kurulumu TAMAMLANMADI (takildi)"; $hata++ }

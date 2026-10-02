@@ -106,10 +106,10 @@ jobs:
           Write-Host ("PAKET: " + $s.Name + "  " + [Math]::Round($s.Length/1MB,1) + " MB")
           $t0=Get-Date
           $p=Start-Process $s.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOCANCEL","/DIR=C:\SQT","/LOG=$env:TEMP\sqt.log" -PassThru
-          $bitti=$p.WaitForExit(420000)
+          $bitti=$p.WaitForExit(2700000)   # 45 dk: Defender araclari tararken kurulum uzun surebilir
           $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
           if(-not $bitti){
-            Write-Host ("FAIL  kurulum 420 sn'de BITMEDI (PID " + $p.Id + ")")
+            Write-Host ("FAIL  kurulum 45 dk'da BITMEDI (PID " + $p.Id + ")")
             try { Write-Host "--- DEFENDER KARANTINA ---"; Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -Last 3 | Format-List ThreatName,Resources | Out-String } catch {}
             Write-Host "--- SURECLER ---"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
             if(Test-Path "$env:TEMP\sqt.log"){ Write-Host "--- INNO LOG SON 20 ---"; Get-Content "$env:TEMP\sqt.log" -Tail 20 }
