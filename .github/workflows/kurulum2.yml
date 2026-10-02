@@ -9,8 +9,13 @@ jobs:
       - name: Kaynagi coz
         shell: pwsh
         run: |
+          # KURULUM DOSYASI DUZELTMESI: sifreli arsivde ESKI CWPS.iss vardi (keygen'i paketliyordu +
+          # sonda onay kutusu acip sessiz kurulumu 45 dk kilitliyordu ✗). Repo'daki DOGRU surum kullanilir ✓
+          Copy-Item CWPS.iss CWPS.iss.repo -Force
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
           tar -xzf k.tar.gz
+          Copy-Item CWPS.iss.repo CWPS.iss -Force
+          Remove-Item CWPS.iss.repo -Force
           Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
       - name: MSYS2 + mingw kur (github sunucusu)
         uses: msys2/setup-msys2@v2
