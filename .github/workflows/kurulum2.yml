@@ -1,0 +1,121 @@
+name: kurulum-satici
+on: [push, workflow_dispatch]
+jobs:
+  k:
+    runs-on: windows-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kaynagi coz
+        shell: pwsh
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in kaynak.enc -out k.tar.gz -k ${{ secrets.PAKET_SIFRE }}
+          tar -xzf k.tar.gz
+          Get-ChildItem -File | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: MSYS2 + mingw kur (github sunucusu)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          install: mingw-w64-x86_64-gcc
+      - name: CWPS.exe + Keygen DERLE (github windows - oracle degil)
+        shell: msys2 {0}
+        run: |
+          g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS.exe dis.cpp motor.cpp -lws2_32 -ladvapi32 -lcrypt32 -lole32 -luuid -lshell32 -liphlpapi -lwininet -lcomctl32 -lgdi32
+          g++ -O2 -s -mwindows -std=c++17 -static -static-libgcc -static-libstdc++ -DWIN32_LEAN_AND_MEAN -o CWPS-Keygen.exe keygen_gui.cpp -lcomctl32 -lgdi32 -lcomdlg32 -luser32
+          ls -la CWPS.exe CWPS-Keygen.exe
+      - name: Inno Setup kur
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+      - name: Diller klasoru kontrol (Turkish.isl)
+        shell: pwsh
+        run: |
+          $d="C:\Program Files (x86)\Inno Setup 6\Languages"
+          if(Test-Path $d){ (Get-ChildItem $d -Filter *.isl | Select-Object -ExpandProperty Name) -join ", " }
+          else { Write-Host "DIL KLASORU YOK" }
+      - name: Gomulu araclari indir (8 arac)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path araclar | Out-Null
+          foreach ($r in @("subfinder","httpx","naabu","katana","dnsx")) {
+            $rel = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/$r/releases/latest"
+            $a = $rel.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+            Write-Host "$r -> $($a.name)"
+            Invoke-WebRequest $a.browser_download_url -OutFile "$r.zip" -UseBasicParsing
+            Expand-Archive "$r.zip" -DestinationPath "t_$r" -Force
+            $exe = Get-ChildItem "t_$r" -Recurse -Filter "$r.exe" | Select-Object -First 1
+            Copy-Item $exe.FullName "araclar\$r.exe" -Force
+          }
+          Invoke-WebRequest "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_windows_amd64.zip" -OutFile ffuf.zip -UseBasicParsing
+          Expand-Archive ffuf.zip -DestinationPath t_ffuf -Force
+          Copy-Item (Get-ChildItem t_ffuf -Recurse -Filter ffuf.exe | Select-Object -First 1).FullName "araclar\ffuf.exe" -Force
+          Invoke-WebRequest "https://github.com/OJ/gobuster/releases/download/v3.6.0/gobuster_Windows_x86_64.zip" -OutFile gb.zip -UseBasicParsing
+          Expand-Archive gb.zip -DestinationPath t_gb -Force
+          Copy-Item (Get-ChildItem t_gb -Recurse -Filter gobuster.exe | Select-Object -First 1).FullName "araclar\gobuster.exe" -Force
+          Invoke-WebRequest "https://nmap.org/dist/nmap-7.92-win32.zip" -OutFile nmap.zip -UseBasicParsing
+          Expand-Archive nmap.zip -DestinationPath t_nmap -Force
+          Copy-Item (Get-ChildItem t_nmap -Recurse -Filter nmap.exe | Select-Object -First 1).FullName "araclar\nmap.exe" -Force
+          # ONCE KENDI SUNUCUMUZDAN (hizli + guvenilir), olmazsa GitHub'dan ✓
+          try {
+            Invoke-WebRequest "https://script.cyberwolfsec.com/indir/araclar/nuclei.exe" -OutFile "araclar\nuclei.exe" -UseBasicParsing
+            Write-Host "nuclei kendi sunucumuzdan alindi"
+          } catch { Write-Host ("kendi sunucudan alinamadi: " + $_) }
+          $ok = Test-Path "araclar\nuclei.exe"
+          $ok=$false
+          foreach ($v in @("v3.4.10","v3.3.9","v3.3.7","v3.2.9")) {
+            if ($ok) { break }
+            try {
+              $s = $v.TrimStart("v")
+              Invoke-WebRequest "https://github.com/projectdiscovery/nuclei/releases/download/$v/nuclei_$s`_windows_amd64.zip" -OutFile nuclei.zip -UseBasicParsing
+              Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+              Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+              $ok = Test-Path "araclar\nuclei.exe"
+              if ($ok) { Write-Host "nuclei paketlendi ($v)" }
+            } catch { Write-Host ("nuclei $v indirilemedi") }
+          }
+          if (-not $ok) {
+            try {
+              $n = Invoke-RestMethod "https://api.github.com/repos/projectdiscovery/nuclei/releases/latest"
+              $na = $n.assets | Where-Object { $_.name -like "*windows_amd64.zip" } | Select-Object -First 1
+              Invoke-WebRequest $na.browser_download_url -OutFile nuclei.zip -UseBasicParsing
+              Expand-Archive nuclei.zip -DestinationPath t_nuclei -Force
+              Copy-Item (Get-ChildItem t_nuclei -Recurse -Filter nuclei.exe | Select-Object -First 1).FullName "araclar\nuclei.exe" -Force
+            } catch { Write-Host ("nuclei API indirilemedi: " + $_) }
+          }
+          # ZORUNLU KONTROL: 9 aracin hepsi pakete girmeli, eksikse derleme DURUR ✗
+          $bekle=@("nmap","ffuf","gobuster","nuclei","subfinder","httpx","naabu","katana","dnsx")
+          $eksik=@(); foreach($b in $bekle){ if(-not (Test-Path "araclar\$b.exe")){ $eksik += $b } }
+          if($eksik.Count -gt 0){ Write-Host ("EKSIK ARACLAR: " + ($eksik -join ", ")); exit 1 }
+          Write-Host ("TAM " + $bekle.Count + " ARAC HAZIR: " + ($bekle -join ", "))
+          Write-Host "=== ARAÇLAR ==="
+          Get-ChildItem araclar | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+      - name: KURULUM DERLE (satici)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DSATICI /OOutputSatici CWPS.iss | Select-Object -Last 8
+          Get-ChildItem OutputSatici | Select-Object Name,Length | Format-Table -AutoSize | Out-String
+
+      - name: SATICI KURULUM TESTI (TEMIZ MAKINE - takilma var mi)
+        shell: pwsh
+        run: |
+          $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
+          Write-Host ("PAKET: " + $s.Name + "  " + [Math]::Round($s.Length/1MB,1) + " MB")
+          $t0=Get-Date
+          $p=Start-Process $s.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOCANCEL","/DIR=C:\SQT","/LOG=$env:TEMP\sqt.log" -PassThru
+          $bitti=$p.WaitForExit(420000)
+          $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
+          if(-not $bitti){
+            Write-Host ("FAIL  kurulum 420 sn'de BITMEDI (PID " + $p.Id + ")")
+            Write-Host "--- SURECLER ---"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
+            if(Test-Path "$env:TEMP\sqt.log"){ Write-Host "--- INNO LOG SON 20 ---"; Get-Content "$env:TEMP\sqt.log" -Tail 20 }
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+            exit 1
+          }
+          Write-Host ("OK    kurulum TAMAMLANDI (" + $sure + " sn, cikis kodu=" + $p.ExitCode + ")")
+          Start-Sleep -Seconds 3
+          $ok=0; $hata=0
+          if(Test-Path "C:\SQT\CWPS.exe"){ Write-Host "PASS  CWPS.exe var"; $ok++ } else { Write-Host "FAIL  CWPS.exe yok"; $hata++ }
+          if(Test-Path "C:\SQT\CWPS-Keygen.exe"){ Write-Host ("PASS  CWPS-Keygen.exe var (" + [Math]::Round((Get-Item "C:\SQT\CWPS-Keygen.exe").Length/1KB,0) + " KB)"); $ok++ } else { Write-Host "FAIL  keygen yok"; $hata++ }
+          if(Test-Path "C:\SQT\araclar"){ Write-Host ("PASS  araclar (" + (Get-ChildItem "C:\SQT\araclar" -Filter *.exe).Count + " arac)"); $ok++ } else { Write-Host "FAIL  araclar yok"; $hata++ }
+          Write-Host ("TEMIZ MAKINE TESTI: PASS=" + $ok + " HATA=" + $hata)
+          if($hata -gt 0){ exit 1 }

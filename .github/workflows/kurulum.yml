@@ -187,7 +187,11 @@ jobs:
             $p=Start-Process $exe.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/NOCANCEL","/DIR=$dizin","/LOG=$env:TEMP\kur-$ad.log" -PassThru
             $ok=$p.WaitForExit($sinir*1000)
             $sure=[Math]::Round(((Get-Date)-$t0).TotalSeconds,1)
-            if(-not $ok){ Write-Host ("FAIL  " + $ad + " " + $sinir + " sn'de BITMEDI (PID " + $p.Id + ") - zorla kapatiliyor"); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; taskkill /F /T /IM (($exe.Name) -replace "\.exe$","")  2>$null | Out-Null
+            if(-not $ok){ Write-Host ("FAIL  " + $ad + " " + $sinir + " sn'de BITMEDI (PID " + $p.Id + ") - zorla kapatiliyor")
+              Write-Host "--- TAKILMA ANINDA CALISAN SURECLER ---"
+              Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge|powershell|cmd" } | Select-Object ProcessName,Id,StartTime | Format-Table -AutoSize | Out-String
+              Get-ChildItem "$env:TEMP" -Filter "Setup Log*.txt" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host ("--- INNO OTO LOG: " + $_.Name + " ---"); Get-Content $_.FullName -Tail 15 }
+              Get-ChildItem "$env:TEMP" -Filter "*satici*" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host ("--- LOG: " + $_.Name + " ---"); Get-Content $_.FullName -Tail 15 }; Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; taskkill /F /T /IM (($exe.Name) -replace "\.exe$","")  2>$null | Out-Null
               $lg="$env:TEMP\kur-$ad.log"; if(Test-Path $lg){ Write-Host "--- INNO LOG SON SATIRLAR ---"; Get-Content $lg -Tail 12 } ; return $false }
             Write-Host ("OK    " + $ad + " bitti (" + $sure + " sn, cikis kodu=" + $p.ExitCode + ")")
             $lg="$env:TEMP\kur-$ad.log"; if(Test-Path $lg){ Write-Host "--- INNO LOG SON 6 SATIR ---"; Get-Content $lg -Tail 6 }
@@ -205,10 +209,14 @@ jobs:
             }
             Start-Sleep -Seconds 5
           }
-          # SATICI oncesi: calisan programlari kapat (acik program kurulumu kilitliyordu) ✓
+          # SATICI oncesi: TUM kalintilari kapat (kaldirici/setup/edge dahil) ✓
           taskkill /F /IM CWPS.exe 2>$null | Out-Null
           taskkill /F /IM CWPS-Keygen.exe 2>$null | Out-Null
-          Start-Sleep -Seconds 3
+          taskkill /F /IM unins000.exe 2>$null | Out-Null
+          taskkill /F /IM msedge.exe 2>$null | Out-Null
+          Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like "*_iu*" -or $_.ProcessName -like "CWPS-Setup*" -or $_.ProcessName -like "unins*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 8
+          Write-Host "kalan surecler:"; Get-Process | Where-Object { $_.ProcessName -match "CWPS|unins|iu|msedge" } | Select-Object ProcessName,Id | Format-Table -AutoSize | Out-String
           $s = (Get-ChildItem OutputSatici -Filter *.exe | Select-Object -First 1)
           $k1 = Kur $s "satici" "C:\KW-TEST" 900
           Start-Sleep -Seconds 2
