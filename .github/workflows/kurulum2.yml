@@ -3,7 +3,7 @@ on: [push, workflow_dispatch]
 jobs:
   kali:
     runs-on: ubuntu-latest
-    timeout-minutes: 70
+    timeout-minutes: 120
     steps:
       - name: Kali (kali-rolling) cek ve Linux araclarini kur
         run: |
@@ -20,7 +20,7 @@ jobs:
   k:
     needs: kali
     runs-on: windows-latest
-    timeout-minutes: 55
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - name: Kaynagi coz
